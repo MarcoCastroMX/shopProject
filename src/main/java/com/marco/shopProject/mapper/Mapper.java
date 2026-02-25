@@ -1,10 +1,14 @@
 package com.marco.shopProject.mapper;
 
-import com.marco.shopProject.dto.*;
-import com.marco.shopProject.entity.DetalleVenta;
-import com.marco.shopProject.entity.Producto;
-import com.marco.shopProject.entity.Sucursal;
-import com.marco.shopProject.entity.Venta;
+import com.marco.shopProject.detalleVenta.dto.DetalleVentaDTO;
+import com.marco.shopProject.detalleVenta.entity.DetalleVenta;
+import com.marco.shopProject.producto.entity.Producto;
+import com.marco.shopProject.sucursal.entity.Sucursal;
+import com.marco.shopProject.venta.entity.Venta;
+import com.marco.shopProject.producto.dto.MostrarProductoDTO;
+import com.marco.shopProject.producto.dto.ProductoInventarioDTO;
+import com.marco.shopProject.sucursal.dto.SucursalDTO;
+import com.marco.shopProject.venta.dto.VentaDTO;
 import org.springframework.stereotype.Component;
 
 @Component
