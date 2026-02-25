@@ -3,6 +3,7 @@ package com.marco.shopProject.venta.controller;
 import com.marco.shopProject.venta.dto.CrearVentaDTO;
 import com.marco.shopProject.venta.dto.VentaDTO;
 import com.marco.shopProject.venta.service.VentaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -47,7 +48,7 @@ public class VentaController {
     }
 
     @PostMapping("/ventas/{id}")
-    public VentaDTO createVenta(@PathVariable Long id, @RequestBody CrearVentaDTO crearVentaDTO){
+    public VentaDTO createVenta(@PathVariable Long id, @Valid @RequestBody CrearVentaDTO crearVentaDTO){
         VentaDTO venta = ventaService.crearVenta(id,crearVentaDTO);
         return venta;
     }

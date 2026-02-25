@@ -1,6 +1,8 @@
 package com.marco.shopProject.venta.service;
 
 import com.marco.shopProject.detalleVenta.dto.CrearDetalleVentaDTO;
+import com.marco.shopProject.producto.exception.ProductoNoEncontradoException;
+import com.marco.shopProject.sucursal.exception.SucursalNoEncontradaException;
 import com.marco.shopProject.venta.dto.CrearVentaDTO;
 import com.marco.shopProject.venta.dto.VentaDTO;
 import com.marco.shopProject.detalleVenta.entity.DetalleVenta;
@@ -55,7 +57,7 @@ public class VentaServiceImpl implements VentaService{
     public List<VentaDTO> obtenerVentasPorSucursalYFecha(Long sucursalId, LocalDateTime fecha) {
         //Revisar si sucursal existe
         Sucursal sucursal = sucursalRepository.findById(sucursalId)
-                .orElseThrow(() -> new RuntimeException("Sucursal No Existe"));
+                .orElseThrow(() -> new SucursalNoEncontradaException(sucursalId));
 
         //Revisar si la fecha es valida
         if(fecha.isAfter(LocalDateTime.now())){
@@ -80,11 +82,6 @@ public class VentaServiceImpl implements VentaService{
 
     @Override
     public VentaDTO crearVenta(Long id, CrearVentaDTO ventaRecibida) {
-        if(ventaRecibida == null) throw new RuntimeException("VentaDTO es null");
-        if(ventaRecibida.sucursalId() == null) throw new RuntimeException("Debe indicar la sucursal");
-        if(ventaRecibida.detalle() == null || ventaRecibida.detalle().isEmpty())
-            throw new RuntimeException("Debe incluir al menos un producto");
-
         Sucursal sucursal = sucursalRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sucursal no Encontrada"));
 
@@ -96,7 +93,7 @@ public class VentaServiceImpl implements VentaService{
         Double totalCalculado = 0.0;
 
         for(CrearDetalleVentaDTO v : ventaRecibida.detalle()){
-            Producto producto = productoRepository.findById(v.productoId()).orElseThrow(()-> new RuntimeException("Producto no encontrado"));
+            Producto producto = productoRepository.findById(v.productoId()).orElseThrow(()-> new ProductoNoEncontradoException(v.productoId()));
 
             DetalleVenta detalleVenta = new DetalleVenta();
 
