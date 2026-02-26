@@ -2,9 +2,12 @@ package com.marco.shopProject.producto.controller;
 
 import com.marco.shopProject.producto.dto.ProductoInventarioDTO;
 import com.marco.shopProject.producto.service.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +15,7 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ProductoController {
 
-    private ProductoService productoService;
+    private final ProductoService productoService;
 
     @Autowired
     public ProductoController(ProductoService productoService){
@@ -20,34 +23,36 @@ public class ProductoController {
     }
 
     @GetMapping("productos")
-    public List<ProductoInventarioDTO> getAllProducts(){
-        return productoService.getAllProducts();
+    public ResponseEntity<List<ProductoInventarioDTO>> getAllProducts(){
+        return ResponseEntity.ok(productoService.getAllProducts());
     }
 
     @GetMapping("productos/{id}")
-    public ProductoInventarioDTO obtenerProductoPorId(@PathVariable int id){
-        return productoService.obtenerProductoPorId(id);
+    public ResponseEntity<ProductoInventarioDTO> obtenerProductoPorId(@PathVariable int id){
+        return ResponseEntity.ok(productoService.obtenerProductoPorId(id));
     }
 
     @PostMapping("productos")
-    public ProductoInventarioDTO createProduct(@RequestBody ProductoInventarioDTO nuevoProducto){
-        return productoService.createProduct(nuevoProducto);
+    public ResponseEntity<ProductoInventarioDTO> createProduct(@Valid @RequestBody ProductoInventarioDTO nuevoProducto){
+        ProductoInventarioDTO producto = productoService.createProduct(nuevoProducto);
+        URI location = URI.create("/productos/"+producto.id());
+        return ResponseEntity.created(location).body(producto);
     }
 
     @PutMapping("productos/{id}")
-    public ProductoInventarioDTO updateProduct(@PathVariable int id, @RequestBody ProductoInventarioDTO newProduct){
-        return productoService.updateProduct(id,newProduct);
+    public ResponseEntity<ProductoInventarioDTO> updateProduct(@PathVariable int id, @Valid @RequestBody ProductoInventarioDTO newProduct){
+        return ResponseEntity.ok(productoService.updateProduct(id,newProduct));
     }
 
     @PatchMapping("productos/{id}")
-    public ProductoInventarioDTO partialUpdateProduct(@PathVariable int id, @RequestBody Map<String, Object> bodyArray){
-        return productoService.partialUpdateProduct(id,bodyArray);
+    public ResponseEntity<ProductoInventarioDTO> partialUpdateProduct(@PathVariable int id, @RequestBody Map<String, Object> bodyArray){
+        return ResponseEntity.ok(productoService.partialUpdateProduct(id,bodyArray));
     }
 
     @DeleteMapping("productos/{id}")
-    public String deleteProduct(@PathVariable int id){
+    public ResponseEntity<Void> deleteProduct(@PathVariable int id){
         productoService.deleteProduct(id);
-        return "Producto Eliminado";
+        return ResponseEntity.noContent().build();
     }
 
 }

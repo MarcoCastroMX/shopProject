@@ -2,6 +2,7 @@ package com.marco.shopProject.estadistica.controller;
 
 import com.marco.shopProject.estadistica.dto.ProductoMasVendidoDTO;
 import com.marco.shopProject.estadistica.service.EstadisticaService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ public class EstadisticaController {
     }
 
     @GetMapping("producto-mas-vendido")
-    public ProductoMasVendidoDTO obtenerProductoMasVendido(){
-        return estadisticaService.obtenerProductoMasVendido();
+    public ResponseEntity<ProductoMasVendidoDTO> obtenerProductoMasVendido(){
+        return ResponseEntity.ok(estadisticaService.obtenerProductoMasVendido());
     }
 }

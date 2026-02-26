@@ -6,17 +6,20 @@ import com.marco.shopProject.venta.service.VentaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class VentaController {
 
-    private VentaService ventaService;
+    private final VentaService ventaService;
 
     @Autowired
     public VentaController(VentaService ventaService){
@@ -24,7 +27,7 @@ public class VentaController {
     }
 
     @GetMapping("/ventas")
-    public List<VentaDTO> obtenerVentas(
+    public ResponseEntity<List<VentaDTO>> obtenerVentas(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fecha,
@@ -34,29 +37,32 @@ public class VentaController {
 
         if(sucursalId != null && fecha != null){
             List<VentaDTO> ventaDTOList = ventaService.obtenerVentasPorSucursalYFecha(sucursalId,fechaConHora);
-            return ventaDTOList;
+            return ResponseEntity.ok(ventaDTOList);
         }else{
             List<VentaDTO> ventaDTOList = ventaService.obtenerVentas(estado);
-            return ventaDTOList;
+            return ResponseEntity.ok(ventaDTOList);
         }
     }
 
     @GetMapping("ventas/{id}")
-    public VentaDTO obtenerVentaPorId(@PathVariable Long id){
+    public ResponseEntity<VentaDTO> obtenerVentaPorId(@PathVariable Long id){
         VentaDTO ventaDTO = ventaService.obtenerVentaPorId(id);
-        return ventaDTO;
+        return ResponseEntity.ok(ventaDTO);
     }
 
     @PostMapping("/ventas/{id}")
-    public VentaDTO createVenta(@PathVariable Long id, @Valid @RequestBody CrearVentaDTO crearVentaDTO){
+    public ResponseEntity<VentaDTO> createVenta(@PathVariable Long id, @Valid @RequestBody CrearVentaDTO crearVentaDTO){
         VentaDTO venta = ventaService.crearVenta(id,crearVentaDTO);
-        return venta;
+
+        URI location = URI.create("/ventas/"+venta.id());
+        return ResponseEntity.created(location).body(venta);
     }
 
     @DeleteMapping("/ventas/{id}")
-    public String eliminarVenta(@PathVariable Long id){
+    public ResponseEntity<Map<String,String>> eliminarVenta(@PathVariable Long id){
         VentaDTO ventaDTO = ventaService.eliminarVenta(id);
-        return (ventaDTO.estado().equals("ELIMINADO") ? "Venta \"eliminada\" correctamente" : "Error al eliminar venta");
+
+        return ResponseEntity.ok((ventaDTO.estado().equals("ELIMINADO") ? Map.of("message","Venta \"eliminada\" correctamente") : Map.of("message","Error al eliminar venta")));
     }
 
 }
