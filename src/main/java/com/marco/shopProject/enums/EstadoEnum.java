@@ -1,6 +1,6 @@
 package com.marco.shopProject.enums;
 
-public enum EstadoVenta {
+public enum EstadoEnum {
     ACTIVO,
     ELIMINADO
 }

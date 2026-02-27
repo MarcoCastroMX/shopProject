@@ -2,7 +2,7 @@ package com.marco.shopProject.venta.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.marco.shopProject.detalleVenta.entity.DetalleVenta;
-import com.marco.shopProject.enums.EstadoVenta;
+import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.sucursal.entity.Sucursal;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,7 +23,7 @@ public class Venta {
     private LocalDateTime fecha;
 
     @Enumerated(EnumType.STRING)
-    private EstadoVenta estado;
+    private EstadoEnum estado;
 
     private Double total;
 

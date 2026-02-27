@@ -9,7 +9,7 @@ import com.marco.shopProject.detalleVenta.entity.DetalleVenta;
 import com.marco.shopProject.producto.entity.Producto;
 import com.marco.shopProject.sucursal.entity.Sucursal;
 import com.marco.shopProject.venta.entity.Venta;
-import com.marco.shopProject.enums.EstadoVenta;
+import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.mapper.Mapper;
 import com.marco.shopProject.producto.repository.ProductoRepository;
 import com.marco.shopProject.sucursal.repository.SucursalRepository;
@@ -40,11 +40,11 @@ public class VentaServiceImpl implements VentaService{
     public List<VentaDTO> obtenerVentas(String estado) {
         if(estado!=null){
             if(estado.equals("ACTIVO")){
-                return ventaRepository.findAllByEstado(EstadoVenta.ACTIVO).stream()
+                return ventaRepository.findAllByEstado(EstadoEnum.ACTIVO).stream()
                         .map(Mapper::toDTO)
                         .toList();
             }
-            return ventaRepository.findAllByEstado(EstadoVenta.ELIMINADO).stream()
+            return ventaRepository.findAllByEstado(EstadoEnum.ELIMINADO).stream()
                     .map(Mapper::toDTO)
                     .toList();
         }
@@ -86,7 +86,7 @@ public class VentaServiceImpl implements VentaService{
                 .orElseThrow(() -> new RuntimeException("Sucursal no Encontrada"));
 
         Venta venta = new Venta();
-        venta.setEstado(EstadoVenta.valueOf(ventaRecibida.estado()));
+        venta.setEstado(EstadoEnum.valueOf(ventaRecibida.estado()));
         venta.setSucursal(sucursal);
 
         List<DetalleVenta> detalles = new ArrayList<>();
@@ -122,7 +122,7 @@ public class VentaServiceImpl implements VentaService{
                 orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
         //Cambiar estado de la venta
-        venta.setEstado(EstadoVenta.ELIMINADO);
+        venta.setEstado(EstadoEnum.ELIMINADO);
 
         //Cambiar venta del Detalle venta
         for(DetalleVenta detalle : venta.getDetalleVentas()){
