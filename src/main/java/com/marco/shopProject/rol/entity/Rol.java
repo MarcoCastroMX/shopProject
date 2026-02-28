@@ -3,11 +3,9 @@ package com.marco.shopProject.rol.entity;
 import com.marco.shopProject.enums.RolesEnum;
 import com.marco.shopProject.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,6 +13,7 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Rol {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +24,14 @@ public class Rol {
 
     @ManyToMany(mappedBy = "roles")
     private List<User> users;
+
+    public void add(User user) {
+        if(users == null){
+            users = new ArrayList<>();
+        }
+        if(!users.contains(user)){
+            users.add(user);
+            user.add(this);
+        }
+    }
 }

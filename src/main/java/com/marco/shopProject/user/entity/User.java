@@ -3,11 +3,9 @@ package com.marco.shopProject.user.entity;
 import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.rol.entity.Rol;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,6 +13,7 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +24,8 @@ public class User {
     private String apellido;
 
     private String email;
+
+    private String password;
 
     private String telefono;
 
@@ -38,4 +39,14 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_id"))
     private List<Rol> roles;
+
+    public void add(Rol rol){
+        if(roles == null){
+            roles = new ArrayList<>();
+        }
+        if(!roles.contains(rol)){
+            roles.add(rol);
+            rol.add(this);
+        }
+    }
 }

@@ -3,7 +3,11 @@ package com.marco.shopProject.mapper;
 import com.marco.shopProject.detalleVenta.dto.DetalleVentaDTO;
 import com.marco.shopProject.detalleVenta.entity.DetalleVenta;
 import com.marco.shopProject.producto.entity.Producto;
+import com.marco.shopProject.rol.dto.RolDTO;
+import com.marco.shopProject.rol.entity.Rol;
 import com.marco.shopProject.sucursal.entity.Sucursal;
+import com.marco.shopProject.user.dto.MostrarUserDTO;
+import com.marco.shopProject.user.entity.User;
 import com.marco.shopProject.venta.entity.Venta;
 import com.marco.shopProject.producto.dto.MostrarProductoDTO;
 import com.marco.shopProject.producto.dto.ProductoInventarioDTO;
@@ -68,5 +72,16 @@ public class Mapper {
                 .productoDTO(productoTOmostrarProductoDTO(detalleVenta.getProducto()))
                 .subTotal(detalleVenta.getSubtotal())
                 .build();
+    }
+
+    public static MostrarUserDTO userToMostrarUserDTO(User user){
+        return MostrarUserDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .build();
+    }
+
+    public static RolDTO rolToRolDTO(Rol rol){
+        return new RolDTO(rol.getRol());
     }
 }
