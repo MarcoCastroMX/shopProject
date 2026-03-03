@@ -1,5 +1,6 @@
 package com.marco.shopProject.rol.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.marco.shopProject.enums.RolesEnum;
 import com.marco.shopProject.user.entity.User;
 import jakarta.persistence.*;
@@ -23,6 +24,7 @@ public class Rol {
     private RolesEnum rol;
 
     @ManyToMany(mappedBy = "roles")
+    @JsonBackReference
     private List<User> users;
 
     public void add(User user) {

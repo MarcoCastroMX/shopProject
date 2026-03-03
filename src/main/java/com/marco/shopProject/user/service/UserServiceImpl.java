@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -41,8 +42,8 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public Boolean existeEmail(String email) {
-        User user = userRepository.findUserByEmail(email);
-        return (user != null) ? true : false;
+        Optional<User> user = userRepository.findUserByEmail(email);
+        return (user.get() != null) ? true : false;
     }
 
     @Override

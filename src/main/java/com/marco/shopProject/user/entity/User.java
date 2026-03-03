@@ -1,5 +1,6 @@
 package com.marco.shopProject.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.rol.entity.Rol;
 import jakarta.persistence.*;
@@ -38,6 +39,7 @@ public class User {
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_id"))
+    @JsonManagedReference
     private List<Rol> roles;
 
     public void add(Rol rol){
