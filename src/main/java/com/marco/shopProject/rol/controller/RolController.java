@@ -21,8 +21,4 @@ public class RolController {
         return rolService.obtenerRoles();
     }
 
-    @PostMapping("/roles")
-    public RolDTO crearRol(@RequestBody RolDTO rol){
-        return rolService.crearRol(rol);
-    }
 }

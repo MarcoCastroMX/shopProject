@@ -27,26 +27,4 @@ public class RolServiceImpl implements RolService {
                 .toList();
         return listDTO;
     }
-
-    @Override
-    public RolDTO crearRol(RolDTO rol) {
-        Rol search = rolRepository.findRolByRol(rol.role());
-
-        if(search != null){
-            throw new RuntimeException("Rol ya existente");
-        }
-        Rol newRol = Rol.builder()
-                .rol(rol.role())
-                .users(new ArrayList<>())
-                .build();
-
-        rolRepository.save(newRol);
-
-        return Mapper.rolToRolDTO(newRol);
-    }
-
-    @Override
-    public RolDTO encontrarRolPorRolesEnum(RolesEnum role) {
-        return Mapper.rolToRolDTO(rolRepository.findRolByRol(role));
-    }
 }

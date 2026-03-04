@@ -7,6 +7,4 @@ import java.util.List;
 
 public interface RolService {
     List<RolDTO> obtenerRoles();
-    RolDTO crearRol(RolDTO rol);
-    RolDTO encontrarRolPorRolesEnum(RolesEnum role);
 }
