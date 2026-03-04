@@ -27,6 +27,7 @@ public class Rol {
     @JsonBackReference
     private List<User> users;
 
+
     public void add(User user) {
         if(users == null){
             users = new ArrayList<>();

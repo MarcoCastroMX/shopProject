@@ -1,5 +1,6 @@
 package com.marco.shopProject.security.authentication;
 
+import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.rol.entity.Rol;
 import com.marco.shopProject.user.entity.User;
 import com.marco.shopProject.user.repository.UserRepository;
@@ -31,9 +32,15 @@ public class CustomUserDetailService implements UserDetailsService {
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        return new org.springframework.security.core.userdetails.User(
+        org.springframework.security.core.userdetails.User newUser = new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
+                user.getEstado() == EstadoEnum.ACTIVO,
+                true,
+                true,
+                true,
                 authorities);
+
+        return newUser;
     }
 }
