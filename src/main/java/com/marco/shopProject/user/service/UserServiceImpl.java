@@ -32,23 +32,33 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public List<MostrarUserDTO> obtenerUsuarios() {
-        return List.of();
+        return userRepository.findAll().stream()
+                .map(Mapper::userToMostrarUserDTO)
+                .toList();
     }
 
     @Override
-    public List<MostrarUserDTO> obtenerUsuariosPorRol(String RolEnum) {
-        return List.of();
+    public List<MostrarUserDTO> obtenerUsuariosPorRol(String rolString) {
+
+        RolesEnum rolBuscado = RolesEnum.valueOf(rolString);
+
+        return rolRepository.findRolByRol(rolBuscado).getUsers().stream()
+                .map(Mapper::userToMostrarUserDTO)
+                .toList();
     }
 
     @Override
     public Boolean existeEmail(String email) {
         Optional<User> user = userRepository.findUserByEmail(email);
-        return (user.get() != null) ? true : false;
+
+        return user.isPresent();
     }
 
     @Override
     public MostrarUserDTO obtenerUsuarioPorId(Long id) {
-        return null;
+        User user = userRepository.findById(id).
+                orElseThrow(() -> new RuntimeException("Id No Encontrado"));
+        return Mapper.userToMostrarUserDTO(user);
     }
 
     @Override
