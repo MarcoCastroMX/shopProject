@@ -11,6 +11,7 @@ import com.marco.shopProject.user.entity.User;
 import com.marco.shopProject.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,25 +25,33 @@ public class UserServiceImpl implements UserService{
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder){
+    private final JsonMapper jsonMapper;
+
+    public UserServiceImpl(UserRepository userRepository, RolRepository rolRepository, PasswordEncoder passwordEncoder, JsonMapper jsonMapper){
         this.userRepository = userRepository;
         this.rolRepository = rolRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
-    public List<MostrarUserDTO> obtenerUsuarios() {
-        return userRepository.findAll().stream()
+    public List<MostrarUserDTO> obtenerUsuarios(String estado) {
+        EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
+
+        return userRepository.findUserByEstado(estadoBuscado).stream()
                 .map(Mapper::userToMostrarUserDTO)
                 .toList();
     }
 
     @Override
-    public List<MostrarUserDTO> obtenerUsuariosPorRol(String rolString) {
+    public List<MostrarUserDTO> obtenerUsuariosPorRol(String rolString, String estado) {
 
         RolesEnum rolBuscado = RolesEnum.valueOf(rolString);
+        EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
 
-        return rolRepository.findRolByRol(rolBuscado).getUsers().stream()
+        Rol rol = rolRepository.findRolByRol(rolBuscado);
+
+        return userRepository.findAllByEstadoAndRolesContains(estadoBuscado,rol).stream()
                 .map(Mapper::userToMostrarUserDTO)
                 .toList();
     }
@@ -92,17 +101,30 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public MostrarUserDTO actualizarUsuario(User newUser) {
-        return null;
-    }
+    public MostrarUserDTO actualizacionParcialUsuario(Long id, Map<String, Object> body) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));
 
-    @Override
-    public MostrarUserDTO actualizacionParcialUsuario(Map<String, Object> body) {
-        return null;
+        body.remove("id");
+        body.remove("roles");
+
+        User newUser = jsonMapper.updateValue(user,body);
+
+        userRepository.save(user);
+        return Mapper.userToMostrarUserDTO(user);
     }
 
     @Override
     public void eliminarUsuario(Long id) {
+        if(id == 1){
+            throw new RuntimeException("No se puede eliminar a ese Usuario");
+        }
 
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));
+
+        user.setEstado(EstadoEnum.ELIMINADO);
+
+        userRepository.save(user);
     }
 }

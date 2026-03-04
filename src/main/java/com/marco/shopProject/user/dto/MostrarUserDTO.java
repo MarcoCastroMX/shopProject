@@ -5,6 +5,7 @@ import lombok.Builder;
 @Builder
 public record MostrarUserDTO(
         Long id,
-        String email
+        String email,
+        String estado
 ) {
 }

@@ -78,6 +78,7 @@ public class Mapper {
         return MostrarUserDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
+                .estado(user.getEstado().toString())
                 .build();
     }
 

@@ -7,6 +7,7 @@ import jakarta.websocket.server.PathParam;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -20,11 +21,13 @@ public class UserController {
 
     @GetMapping("/usuarios")
     public List<MostrarUserDTO> obtenerUsuarios(
-            @RequestParam(required = false) String role){
+            @RequestParam(required = false) String role,
+            @RequestParam(defaultValue = "ACTIVO") String estado){
+
         if(role != null){
-            return userService.obtenerUsuariosPorRol(role);
+            return userService.obtenerUsuariosPorRol(role,estado);
         }
-        return userService.obtenerUsuarios();
+        return userService.obtenerUsuarios(estado);
     }
 
     @GetMapping("/usuarios/{id}")
@@ -35,5 +38,15 @@ public class UserController {
     @PostMapping("/usuarios")
     public MostrarUserDTO crearUsuario(@RequestBody CrearUserDTO newUser){
         return userService.crearUsuario(newUser);
+    }
+
+    @PatchMapping("/usuarios/{id}")
+    public MostrarUserDTO actualizacionParcialUsuario(@PathVariable Long id, @RequestBody Map<String,Object> body){
+        return userService.actualizacionParcialUsuario(id,body);
+    }
+
+    @DeleteMapping("/usuarios/{id}")
+    public void eliminarUsuario(@PathVariable Long id){
+        userService.eliminarUsuario(id);
     }
 }
