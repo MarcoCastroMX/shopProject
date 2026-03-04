@@ -4,10 +4,14 @@ import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.enums.RolesEnum;
 import com.marco.shopProject.mapper.Mapper;
 import com.marco.shopProject.rol.entity.Rol;
+import com.marco.shopProject.rol.exception.RolNotFoundException;
 import com.marco.shopProject.rol.repository.RolRepository;
 import com.marco.shopProject.user.dto.CrearUserDTO;
 import com.marco.shopProject.user.dto.MostrarUserDTO;
 import com.marco.shopProject.user.entity.User;
+import com.marco.shopProject.user.exception.EmailAlreadyTakenException;
+import com.marco.shopProject.user.exception.SuperUserException;
+import com.marco.shopProject.user.exception.UserNotFoundException;
 import com.marco.shopProject.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -66,14 +70,14 @@ public class UserServiceImpl implements UserService{
     @Override
     public MostrarUserDTO obtenerUsuarioPorId(Long id) {
         User user = userRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Id No Encontrado"));
+                orElseThrow(() -> new UserNotFoundException("User No Encontrado"));
         return Mapper.userToMostrarUserDTO(user);
     }
 
     @Override
     public MostrarUserDTO crearUsuario(CrearUserDTO user) {
         if(existeEmail(user.email()))
-            throw new RuntimeException("Email Ya Existente");
+            throw new EmailAlreadyTakenException("Email Ya Existente");
 
         User newUser = User.builder()
                 .nombre(user.nombre())
@@ -91,7 +95,7 @@ public class UserServiceImpl implements UserService{
                 list.add(search);
                 newUser.add(search);
             }else{
-                throw new RuntimeException("Rol Inexistente");
+                throw new RolNotFoundException("Rol No Encontrado");
             }
         }
 
@@ -103,7 +107,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public MostrarUserDTO actualizacionParcialUsuario(Long id, Map<String, Object> body) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));
+                .orElseThrow(() -> new UserNotFoundException("Usuario no Encontrado"));
 
         body.remove("id");
         body.remove("roles");
@@ -117,11 +121,11 @@ public class UserServiceImpl implements UserService{
     @Override
     public void eliminarUsuario(Long id) {
         if(id == 1){
-            throw new RuntimeException("No se puede eliminar a ese Usuario");
+            throw new SuperUserException("No se puede eliminar a ese Usuario");
         }
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no Encontrado"));
+                .orElseThrow(() -> new UserNotFoundException("Usuario no Encontrado"));
 
         user.setEstado(EstadoEnum.ELIMINADO);
 

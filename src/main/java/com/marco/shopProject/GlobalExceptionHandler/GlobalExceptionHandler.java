@@ -1,7 +1,11 @@
 package com.marco.shopProject.GlobalExceptionHandler;
 
 import com.marco.shopProject.producto.exception.ProductoNoEncontradoException;
+import com.marco.shopProject.rol.exception.RolNotFoundException;
 import com.marco.shopProject.sucursal.exception.SucursalNoEncontradaException;
+import com.marco.shopProject.user.exception.EmailAlreadyTakenException;
+import com.marco.shopProject.user.exception.SuperUserException;
+import com.marco.shopProject.user.exception.UserNotFoundException;
 import com.marco.shopProject.venta.exception.VentaNoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -99,8 +103,53 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
+    @ExceptionHandler(exception = {UsernameNotFoundException.class, UserNotFoundException.class})
     public ResponseEntity<ErrorResponse> usuarioNoEncontrado(
+            UsernameNotFoundException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Petion Invalida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(RolNotFoundException.class)
+    public ResponseEntity<ErrorResponse> rolNoEncontrado(
+            UsernameNotFoundException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Petion Invalida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(EmailAlreadyTakenException.class)
+    public ResponseEntity<ErrorResponse> emailYaUtilizado(
+            UsernameNotFoundException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Petion Invalida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(SuperUserException.class)
+    public ResponseEntity<ErrorResponse> intentoDeEliminacionDeSuperUsuario(
             UsernameNotFoundException ex,
             HttpServletRequest request
     ){
