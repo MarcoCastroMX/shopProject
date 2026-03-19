@@ -1,6 +1,7 @@
 package com.marco.shopProject.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.marco.shopProject.auth.entity.Token;
 import com.marco.shopProject.enums.EstadoEnum;
 import com.marco.shopProject.rol.entity.Rol;
 import jakarta.persistence.*;
@@ -24,6 +25,7 @@ public class User {
 
     private String apellido;
 
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -41,6 +43,9 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "rol_id"))
     @JsonManagedReference
     private List<Rol> roles;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Token> tokens;
 
     public void add(Rol rol){
         if(roles == null){
