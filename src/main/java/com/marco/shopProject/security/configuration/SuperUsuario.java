@@ -64,7 +64,7 @@ public class SuperUsuario implements CommandLineRunner {
                     .estado(EstadoEnum.ACTIVO)
                     .build();
 
-            user.add(rolList.getFirst());
+            user.addRol(rolList.getFirst());
             userRepository.save(user);
         }
     }

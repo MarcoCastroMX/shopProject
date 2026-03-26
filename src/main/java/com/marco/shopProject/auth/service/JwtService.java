@@ -1,5 +1,6 @@
 package com.marco.shopProject.auth.service;
 
+import com.marco.shopProject.rol.entity.Rol;
 import com.marco.shopProject.user.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -33,9 +35,15 @@ public class JwtService {
     }
 
     private String buildToken(User user, long expiration) {
+
+        List<String> rolList = user.getRoles().stream()
+                .map(Rol::getRol)
+                .map(String::valueOf)
+                .toList();
+
         return Jwts.builder()
                 .id(user.getId().toString())
-                .claims(Map.of("name",user.getNombre()))
+                .claims(Map.of("name",user.getNombre(),"roles",rolList))
                 .subject(user.getEmail())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
@@ -56,6 +64,16 @@ public class JwtService {
                 .getPayload();
 
         return jwtToken.getSubject();
+    }
+
+    public String extractId(String token){
+        final Claims jwtToken = Jwts.parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return jwtToken.getId();
     }
 
     public boolean isTokenValid(String token, User user) {

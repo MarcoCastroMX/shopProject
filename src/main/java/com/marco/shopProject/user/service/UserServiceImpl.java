@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService{
             Rol search = rolRepository.findRolByRol(rol);
             if(search != null){
                 list.add(search);
-                newUser.add(search);
+                newUser.addRol(search);
             }else{
                 throw new RolNotFoundException("Rol No Encontrado");
             }

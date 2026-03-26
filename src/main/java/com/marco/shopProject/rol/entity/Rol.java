@@ -34,7 +34,7 @@ public class Rol {
         }
         if(!users.contains(user)){
             users.add(user);
-            user.add(this);
+            user.addRol(this);
         }
     }
 }

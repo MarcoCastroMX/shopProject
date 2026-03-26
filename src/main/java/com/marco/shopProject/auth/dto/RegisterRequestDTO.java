@@ -1,6 +1,6 @@
 package com.marco.shopProject.auth.dto;
 
-public record RegisterRequest(
+public record RegisterRequestDTO(
         String email,
         String password,
         String name

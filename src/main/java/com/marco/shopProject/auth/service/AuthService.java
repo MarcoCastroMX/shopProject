@@ -1,8 +1,8 @@
 package com.marco.shopProject.auth.service;
 
-import com.marco.shopProject.auth.dto.LoginRequest;
-import com.marco.shopProject.auth.dto.RegisterRequest;
-import com.marco.shopProject.auth.dto.TokenResponse;
+import com.marco.shopProject.auth.dto.LoginRequestDTO;
+import com.marco.shopProject.auth.dto.RegisterRequestDTO;
+import com.marco.shopProject.auth.dto.TokenResponseDTO;
 import com.marco.shopProject.auth.entity.Token;
 import com.marco.shopProject.auth.repository.TokenRepository;
 import com.marco.shopProject.enums.EstadoEnum;
@@ -31,7 +31,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public TokenResponse register(RegisterRequest request){
+    public TokenResponseDTO register(RegisterRequestDTO request){
         var user = User.builder()
                 .nombre(request.name())
                 .email(request.email())
@@ -40,33 +40,35 @@ public class AuthService {
                 .build();
 
         Rol rol = rolRepository.findRolByRol(RolesEnum.ROLE_USER);
-        user.add(rol);
+        user.addRol(rol);
 
         var savedUser = userRepository.save(user);
 
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        saveUserToken(savedUser,jwtToken);
+        saveUserToken(savedUser,refreshToken);
 
-        return new TokenResponse(jwtToken,refreshToken);
+        return new TokenResponseDTO(jwtToken,refreshToken);
     }
 
-    public TokenResponse login(LoginRequest request) {
+    public TokenResponseDTO login(LoginRequestDTO request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                )
-        );
+                            new UsernamePasswordAuthenticationToken(
+                                    request.email(),
+                                    request.password()
+                            )
+                    );
 
         var user = userRepository.findUserByEmail(request.email())
-                .orElseThrow();
+                .orElseThrow(() -> new UserNotFoundException("User No Encontrado"));
+
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
+
         revokeAllUserTokens(user);
         saveUserToken(user,jwtToken);
-        return new TokenResponse(jwtToken,refreshToken);
+        return new TokenResponseDTO(jwtToken,refreshToken);
     }
 
     private void revokeAllUserTokens(User user) {
@@ -90,10 +92,11 @@ public class AuthService {
                 .revoked(false)
                 .build();
 
+        user.addToken(token);
         tokenRepository.save(token);
     }
 
-    public TokenResponse refreshToken(String authHeader) {
+    public TokenResponseDTO refreshToken(String authHeader) {
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
             throw new IllegalArgumentException("Invalid Bearer Token");
         }
@@ -113,9 +116,8 @@ public class AuthService {
         }
 
         final String accessToken = jwtService.generateToken(user);
-        revokeAllUserTokens(user);
-        saveUserToken(user,accessToken);
-        return new TokenResponse(accessToken,refreshToken);
+
+        return new TokenResponseDTO(accessToken,refreshToken);
 
     }
 }

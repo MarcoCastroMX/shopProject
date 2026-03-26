@@ -2,8 +2,11 @@ package com.marco.shopProject.security.configuration;
 
 import com.marco.shopProject.auth.entity.Token;
 import com.marco.shopProject.auth.repository.TokenRepository;
+import com.marco.shopProject.auth.service.AuthService;
+import com.marco.shopProject.auth.service.JwtService;
 import com.marco.shopProject.enums.RolesEnum;
 import com.marco.shopProject.rol.entity.Rol;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -24,25 +27,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.List;
+
 @Configuration
+@AllArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsService userDetailsService;
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthFilter jwtAuthFilter;
+    private final JwtService jwtService;
     private final TokenRepository tokenRepository;
-
-    public SecurityConfig(UserDetailsService userDetailsService, AuthenticationProvider authenticationProvider, JwtAuthFilter jwtAuthFilter, TokenRepository tokenRepository) {
-        this.userDetailsService = userDetailsService;
-        this.authenticationProvider = authenticationProvider;
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.tokenRepository = tokenRepository;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http){
@@ -72,28 +66,29 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     private void logout(final String token){
         if(token == null || !token.startsWith("Bearer ")){
             throw new IllegalArgumentException("Invalid Token");
         }
 
         final String jwtToken = token.substring(7);
-        final Token foundToken = tokenRepository.findByToken(jwtToken);
-        foundToken.setExpired(true);
-        foundToken.setRevoked(true);
-        tokenRepository.save(foundToken);
-    }
 
-    @Bean
-    public AuthenticationProvider createProvider(PasswordEncoder passwordEncoder, UserDetailsService userDetailsService){
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
-    }
+        final String userId = jwtService.extractId(jwtToken);
+        if(userId == null){
+            return;
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config){
-        return config.getAuthenticationManager();
+        final List<Token> validUserTokens = tokenRepository.
+                findAllExpiredIsFalseOrRevokedIsFalseByUserId(Long.valueOf(userId));
+
+        if(!validUserTokens.isEmpty()){
+            for(final Token t: validUserTokens){
+                t.setRevoked(true);
+                t.setExpired(true);
+            }
+            tokenRepository.saveAll(validUserTokens);
+        }
     }
 
     @Bean

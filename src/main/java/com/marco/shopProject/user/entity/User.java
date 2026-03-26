@@ -47,13 +47,23 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Token> tokens;
 
-    public void add(Rol rol){
+    public void addRol(Rol rol){
         if(roles == null){
             roles = new ArrayList<>();
         }
         if(!roles.contains(rol)){
             roles.add(rol);
             rol.add(this);
+        }
+    }
+
+    public void addToken(Token token){
+        if(tokens == null){
+            tokens = new ArrayList<>();
+        }
+        if(!tokens.contains(token)){
+            tokens.add(token);
+            token.setUser(this);
         }
     }
 }

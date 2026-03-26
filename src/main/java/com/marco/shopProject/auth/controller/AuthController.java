@@ -1,8 +1,8 @@
 package com.marco.shopProject.auth.controller;
 
-import com.marco.shopProject.auth.dto.LoginRequest;
-import com.marco.shopProject.auth.dto.RegisterRequest;
-import com.marco.shopProject.auth.dto.TokenResponse;
+import com.marco.shopProject.auth.dto.LoginRequestDTO;
+import com.marco.shopProject.auth.dto.RegisterRequestDTO;
+import com.marco.shopProject.auth.dto.TokenResponseDTO;
 import com.marco.shopProject.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -17,19 +17,19 @@ public class AuthController {
     private final AuthService service;
 
     @PostMapping("/register")
-    public ResponseEntity<TokenResponse> register(@RequestBody final RegisterRequest request){
-        final TokenResponse token = service.register(request);
+    public ResponseEntity<TokenResponseDTO> register(@RequestBody final RegisterRequestDTO request){
+        final TokenResponseDTO token = service.register(request);
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> authenticate(@RequestBody final LoginRequest request){
-        final TokenResponse token = service.login(request);
+    public ResponseEntity<TokenResponseDTO> authenticate(@RequestBody final LoginRequestDTO request){
+        final TokenResponseDTO token = service.login(request);
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) final String authHeader){
+    public TokenResponseDTO refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) final String authHeader){
         return service.refreshToken(authHeader);
     }
 }
