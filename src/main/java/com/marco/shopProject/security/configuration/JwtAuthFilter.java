@@ -1,10 +1,7 @@
 package com.marco.shopProject.security.configuration;
 
-import com.marco.shopProject.auth.entity.Token;
-import com.marco.shopProject.auth.repository.TokenRepository;
 import com.marco.shopProject.auth.service.JwtService;
-import com.marco.shopProject.user.entity.User;
-import com.marco.shopProject.user.repository.UserRepository;
+import com.marco.shopProject.enums.EstadoEnum;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,25 +10,20 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
-    private final TokenRepository tokenRepository;
-    private final UserRepository userRepository;
-
 
     @Override
     protected void doFilterInternal(
@@ -52,37 +44,45 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String jwtToken = authHeader.substring(7);
         final String userEmail = jwtService.extractUsername(jwtToken);
-        if(userEmail == null || SecurityContextHolder.getContext().getAuthentication() != null){
-            return;
-        }
 
-        final Token token = tokenRepository.findByToken(jwtToken);
-        if(token == null || token.isExpired() || token.isRevoked()){
-            filterChain.doFilter(request,response);
-            return;
-        }
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if(jwtToken == null || jwtService.isTokenExpired(jwtToken) ){
+                filterChain.doFilter(request,response);
+                return;
+            }
 
-        final UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-        final Optional<User> user = userRepository.findUserByEmail(userDetails.getUsername());
-        if(user.isEmpty()){
-            filterChain.doFilter(request,response);
-            return;
-        }
+            final List<String> rolList = jwtService.extractRoles(jwtToken);
+            final String userEstado = jwtService.extractEstado(jwtToken);
+            final boolean isActive = EstadoEnum.ACTIVO.toString().equals(userEstado);
 
-        final boolean isTokenValid = jwtService.isTokenValid(jwtToken,user.get());
-        if(!isTokenValid){
-            return;
-        }
+            if(rolList.isEmpty() || !isActive){
+                filterChain.doFilter(request,response);
+                return;
+            }
 
-        final var authToken = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                null,
-                userDetails.getAuthorities()
-        );
-        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            List<SimpleGrantedAuthority> authorities = rolList.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .toList();
+
+            org.springframework.security.core.userdetails.User userDetails = new org.springframework.security.core.userdetails.User(
+                    userEmail,
+                    "",
+                    isActive,
+                    true,
+                    true,
+                    true,
+                    authorities);
+
+            final var authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities()
+            );
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
 
         filterChain.doFilter(request,response);
-
     }
 }

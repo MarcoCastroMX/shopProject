@@ -63,11 +63,15 @@ public class AuthService {
         var user = userRepository.findUserByEmail(request.email())
                 .orElseThrow(() -> new UserNotFoundException("User No Encontrado"));
 
+        if(user.getEstado() != EstadoEnum.ACTIVO){
+            throw new RuntimeException("Usuario Eliminado");
+        }
+
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
         revokeAllUserTokens(user);
-        saveUserToken(user,jwtToken);
+        saveUserToken(user,refreshToken);
         return new TokenResponseDTO(jwtToken,refreshToken);
     }
 
@@ -111,7 +115,7 @@ public class AuthService {
         final User user = userRepository.findUserByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException(userEmail));
 
-        if(!jwtService.isTokenValid(refreshToken,user)){
+        if(!jwtService.isTokenValid(refreshToken,user.getEmail())){
             throw new IllegalArgumentException("Invalid Refresh Token");
         }
 

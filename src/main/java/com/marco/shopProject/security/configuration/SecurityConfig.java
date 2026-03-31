@@ -6,6 +6,7 @@ import com.marco.shopProject.auth.service.AuthService;
 import com.marco.shopProject.auth.service.JwtService;
 import com.marco.shopProject.enums.RolesEnum;
 import com.marco.shopProject.rol.entity.Rol;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +56,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Debes proporcionar un token válido\"}");
+                        })))
                 .logout(logout ->
                         logout.logoutUrl("/api/auth/logout")
                                 .addLogoutHandler((request, response, authentication) -> {
