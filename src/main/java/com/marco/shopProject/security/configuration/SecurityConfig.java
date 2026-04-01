@@ -1,11 +1,10 @@
 package com.marco.shopProject.security.configuration;
 
-import com.marco.shopProject.auth.entity.Token;
-import com.marco.shopProject.auth.repository.TokenRepository;
-import com.marco.shopProject.auth.service.AuthService;
-import com.marco.shopProject.auth.service.JwtService;
-import com.marco.shopProject.enums.RolesEnum;
-import com.marco.shopProject.rol.entity.Rol;
+import com.marco.shopProject.identity.auth.entity.Token;
+import com.marco.shopProject.identity.auth.repository.TokenRepository;
+import com.marco.shopProject.security.jwt.JwtService;
+import com.marco.shopProject.core.tools.enums.RolesEnum;
+import com.marco.shopProject.security.jwt.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,17 +13,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
