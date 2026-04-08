@@ -13,6 +13,7 @@ import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import com.marco.shopProject.core.tools.mapper.Mapper;
 import com.marco.shopProject.catalog.producto.repository.ProductoRepository;
 import com.marco.shopProject.catalog.sucursal.repository.SucursalRepository;
+import com.marco.shopProject.sales.venta.exception.CantidadExcedenteException;
 import com.marco.shopProject.sales.venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -94,6 +95,12 @@ public class VentaServiceImpl implements VentaService{
 
         for(CrearDetalleVentaDTO v : ventaRecibida.detalle()){
             Producto producto = productoRepository.findById(v.productoId()).orElseThrow(()-> new ProductoNoEncontradoException(v.productoId()));
+
+            if(producto.getCantidad() == 0 || producto.getCantidad() < v.cantidad()){
+                throw new CantidadExcedenteException("Cantidad Mayor a Producto Disponible");
+            }
+
+            producto.setCantidad(producto.getCantidad()-v.cantidad());
 
             DetalleVenta detalleVenta = new DetalleVenta();
 

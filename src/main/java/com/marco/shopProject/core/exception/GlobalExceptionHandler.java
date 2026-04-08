@@ -6,6 +6,7 @@ import com.marco.shopProject.catalog.sucursal.exception.SucursalNoEncontradaExce
 import com.marco.shopProject.identity.user.exception.EmailAlreadyTakenException;
 import com.marco.shopProject.identity.user.exception.SuperUserException;
 import com.marco.shopProject.identity.user.exception.UserNotFoundException;
+import com.marco.shopProject.sales.venta.exception.CantidadExcedenteException;
 import com.marco.shopProject.sales.venta.exception.VentaNoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -120,7 +121,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RolNotFoundException.class)
     public ResponseEntity<ErrorResponse> rolNoEncontrado(
-            UsernameNotFoundException ex,
+            RolNotFoundException ex,
             HttpServletRequest request
     ){
         ErrorResponse response = ErrorResponse.builder()
@@ -135,7 +136,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyTakenException.class)
     public ResponseEntity<ErrorResponse> emailYaUtilizado(
-            UsernameNotFoundException ex,
+            EmailAlreadyTakenException ex,
             HttpServletRequest request
     ){
         ErrorResponse response = ErrorResponse.builder()
@@ -150,7 +151,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SuperUserException.class)
     public ResponseEntity<ErrorResponse> intentoDeEliminacionDeSuperUsuario(
-            UsernameNotFoundException ex,
+            SuperUserException ex,
             HttpServletRequest request
     ){
         ErrorResponse response = ErrorResponse.builder()
@@ -160,6 +161,22 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(CantidadExcedenteException.class)
+    public ResponseEntity<ErrorResponse> compraDeArticulosInexistentes(
+            CantidadExcedenteException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Peticion Invalida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

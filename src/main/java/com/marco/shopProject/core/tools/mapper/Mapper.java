@@ -66,7 +66,7 @@ public class Mapper {
 
     public static DetalleVentaDTO toDTO(DetalleVenta detalleVenta){
         return DetalleVentaDTO.builder()
-                .productoId(Math.toIntExact(detalleVenta.getId()))
+                .productoId(Math.toIntExact(detalleVenta.getProducto().getId()))
                 .cantidad(detalleVenta.getCantidad())
                 .precioUnitario(detalleVenta.getPrecioUnitario())
                 .productoDTO(productoTOmostrarProductoDTO(detalleVenta.getProducto()))
