@@ -2,6 +2,7 @@ package com.marco.shopProject.security.configuration;
 
 import com.marco.shopProject.identity.auth.entity.Token;
 import com.marco.shopProject.identity.auth.repository.TokenRepository;
+import com.marco.shopProject.security.RateLimiter.RateLimiterFilter;
 import com.marco.shopProject.security.jwt.JwtService;
 import com.marco.shopProject.core.tools.enums.RolesEnum;
 import com.marco.shopProject.security.jwt.JwtAuthFilter;
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtService jwtService;
+    private final RateLimiterFilter rateLimiterFilter;
     private final TokenRepository tokenRepository;
 
     @Bean
@@ -48,6 +50,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimiterFilter, JwtAuthFilter.class)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
