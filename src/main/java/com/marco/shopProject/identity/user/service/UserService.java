@@ -2,13 +2,14 @@ package com.marco.shopProject.identity.user.service;
 
 import com.marco.shopProject.identity.user.dto.CrearUserDTO;
 import com.marco.shopProject.identity.user.dto.MostrarUserDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Map;
 
 public interface UserService {
-    List<MostrarUserDTO> obtenerUsuarios(String estado);
-    List<MostrarUserDTO> obtenerUsuariosPorRol(String RolEnum, String estado);
+    Page<MostrarUserDTO> obtenerUsuarios(String estado, Pageable pageable);
+    Page<MostrarUserDTO> obtenerUsuariosPorRol(String RolEnum, String estado, Pageable pageable);
     Boolean existeEmail(String email);
     MostrarUserDTO obtenerUsuarioPorId(Long id);
     MostrarUserDTO crearUsuario(CrearUserDTO user);

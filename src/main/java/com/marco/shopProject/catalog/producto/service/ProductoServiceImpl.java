@@ -6,11 +6,12 @@ import com.marco.shopProject.catalog.producto.exception.ProductoNoEncontradoExce
 import com.marco.shopProject.core.tools.mapper.Mapper;
 import com.marco.shopProject.catalog.producto.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -26,8 +27,9 @@ public class ProductoServiceImpl implements ProductoService{
     }
 
     @Override
-    public List<ProductoInventarioDTO> getAllProducts() {
-        return productoRepository.findAll().stream().map(Mapper::toDTO).toList();
+    public Page<ProductoInventarioDTO> getAllProducts(Pageable pageable) {
+        Page<Producto> productos = productoRepository.findAll(pageable);
+        return productos.map(Mapper::toDTO);
     }
 
     @Override

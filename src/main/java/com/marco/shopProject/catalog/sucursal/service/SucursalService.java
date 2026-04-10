@@ -1,6 +1,8 @@
 package com.marco.shopProject.catalog.sucursal.service;
 
 import com.marco.shopProject.catalog.sucursal.dto.SucursalDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,7 +10,7 @@ import java.util.Map;
 
 @Service
 public interface SucursalService {
-    List<SucursalDTO> getAllSucursales();
+    Page<SucursalDTO> getAllSucursales(Pageable pageable);
     SucursalDTO getSucursalById(Long id);
     SucursalDTO createSucursal(SucursalDTO newSucursal);
     SucursalDTO updateSucursal(Long id, SucursalDTO newSucursal);

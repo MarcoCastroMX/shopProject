@@ -4,11 +4,13 @@ import com.marco.shopProject.catalog.producto.dto.ProductoInventarioDTO;
 import com.marco.shopProject.catalog.producto.service.ProductoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -23,8 +25,8 @@ public class ProductoController {
     }
 
     @GetMapping("productos")
-    public ResponseEntity<List<ProductoInventarioDTO>> getAllProducts(){
-        return ResponseEntity.ok(productoService.getAllProducts());
+    public ResponseEntity<Page<ProductoInventarioDTO>> getAllProducts(@PageableDefault(size = 20, page = 0) Pageable pageable){
+        return ResponseEntity.ok(productoService.getAllProducts(pageable));
     }
 
     @GetMapping("productos/{id}")

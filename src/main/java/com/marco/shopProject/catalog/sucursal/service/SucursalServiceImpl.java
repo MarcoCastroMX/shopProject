@@ -6,10 +6,11 @@ import com.marco.shopProject.catalog.sucursal.exception.SucursalNoEncontradaExce
 import com.marco.shopProject.core.tools.mapper.Mapper;
 import com.marco.shopProject.catalog.sucursal.repository.SucursalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -25,8 +26,9 @@ public class SucursalServiceImpl implements SucursalService {
     }
 
     @Override
-    public List<SucursalDTO> getAllSucursales() {
-        return sucursalRepository.findAll().stream().map(Mapper::toDTO).toList();
+    public Page<SucursalDTO> getAllSucursales(Pageable pageable) {
+        Page<Sucursal> sucursales = sucursalRepository.findAll(pageable);
+        return sucursales.map(Mapper::toDTO);
     }
 
     @Override

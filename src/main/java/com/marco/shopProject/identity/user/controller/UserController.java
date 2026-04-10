@@ -3,6 +3,9 @@ package com.marco.shopProject.identity.user.controller;
 import com.marco.shopProject.identity.user.dto.CrearUserDTO;
 import com.marco.shopProject.identity.user.dto.MostrarUserDTO;
 import com.marco.shopProject.identity.user.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,14 +24,15 @@ public class UserController {
     }
 
     @GetMapping("/usuarios")
-    public ResponseEntity<List<MostrarUserDTO>> obtenerUsuarios(
+    public ResponseEntity<Page<MostrarUserDTO>> obtenerUsuarios(
             @RequestParam(required = false) String role,
-            @RequestParam(defaultValue = "ACTIVO") String estado){
+            @RequestParam(defaultValue = "ACTIVO") String estado,
+            @PageableDefault(size = 20, page = 0) Pageable pageable){
 
         if(role != null){
-            return ResponseEntity.ok().body(userService.obtenerUsuariosPorRol(role,estado));
+            return ResponseEntity.ok().body(userService.obtenerUsuariosPorRol(role,estado, pageable));
         }
-        return ResponseEntity.ok().body(userService.obtenerUsuarios(estado));
+        return ResponseEntity.ok().body(userService.obtenerUsuarios(estado,pageable));
     }
 
     @GetMapping("/usuarios/{id}")

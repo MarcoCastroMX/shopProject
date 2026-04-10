@@ -13,6 +13,8 @@ import com.marco.shopProject.identity.user.exception.EmailAlreadyTakenException;
 import com.marco.shopProject.identity.user.exception.SuperUserException;
 import com.marco.shopProject.identity.user.exception.UserNotFoundException;
 import com.marco.shopProject.identity.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
@@ -39,25 +41,23 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<MostrarUserDTO> obtenerUsuarios(String estado) {
+    public Page<MostrarUserDTO> obtenerUsuarios(String estado, Pageable pageable) {
         EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
 
-        return userRepository.findUserByEstado(estadoBuscado).stream()
-                .map(Mapper::userToMostrarUserDTO)
-                .toList();
+        return userRepository.findAllUserByEstado(estadoBuscado)
+                .map(Mapper::userToMostrarUserDTO);
     }
 
     @Override
-    public List<MostrarUserDTO> obtenerUsuariosPorRol(String rolString, String estado) {
+    public Page<MostrarUserDTO> obtenerUsuariosPorRol(String rolString, String estado, Pageable pageable) {
 
         RolesEnum rolBuscado = RolesEnum.valueOf(rolString);
         EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
 
         Rol rol = rolRepository.findRolByRol(rolBuscado);
 
-        return userRepository.findAllByEstadoAndRolesContains(estadoBuscado,rol).stream()
-                .map(Mapper::userToMostrarUserDTO)
-                .toList();
+        return userRepository.findAllByEstadoAndRolesContains(estadoBuscado,rol, pageable)
+                .map(Mapper::userToMostrarUserDTO);
     }
 
     @Override

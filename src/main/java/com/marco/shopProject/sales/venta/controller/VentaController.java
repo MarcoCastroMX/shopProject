@@ -5,6 +5,9 @@ import com.marco.shopProject.sales.venta.dto.VentaDTO;
 import com.marco.shopProject.sales.venta.service.VentaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,19 +30,20 @@ public class VentaController {
     }
 
     @GetMapping("/ventas")
-    public ResponseEntity<List<VentaDTO>> obtenerVentas(
+    public ResponseEntity<Page<VentaDTO>> obtenerVentas(
             @RequestParam(required = false) String estado,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fecha,
-            @RequestParam(required = false) Long sucursalId
-    ){
+            @RequestParam(required = false) Long sucursalId,
+            @PageableDefault(size = 20, page = 0) Pageable pageable
+            ){
         LocalDateTime fechaConHora = (fecha != null) ? fecha.atStartOfDay() : null;
 
         if(sucursalId != null && fecha != null){
-            List<VentaDTO> ventaDTOList = ventaService.obtenerVentasPorSucursalYFecha(sucursalId,fechaConHora);
+            Page<VentaDTO> ventaDTOList = ventaService.obtenerVentasPorSucursalYFecha(sucursalId,fechaConHora, pageable);
             return ResponseEntity.ok(ventaDTOList);
         }else{
-            List<VentaDTO> ventaDTOList = ventaService.obtenerVentas(estado);
+            Page<VentaDTO> ventaDTOList = ventaService.obtenerVentas(estado, pageable);
             return ResponseEntity.ok(ventaDTOList);
         }
     }

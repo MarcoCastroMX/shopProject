@@ -16,6 +16,8 @@ import com.marco.shopProject.catalog.sucursal.repository.SucursalRepository;
 import com.marco.shopProject.sales.venta.exception.CantidadExcedenteException;
 import com.marco.shopProject.sales.venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -38,24 +40,21 @@ public class VentaServiceImpl implements VentaService{
     }
 
     @Override
-    public List<VentaDTO> obtenerVentas(String estado) {
+    public Page<VentaDTO> obtenerVentas(String estado, Pageable pageable) {
         if(estado!=null){
             if(estado.equals("ACTIVO")){
-                return ventaRepository.findAllByEstado(EstadoEnum.ACTIVO).stream()
-                        .map(Mapper::toDTO)
-                        .toList();
+                return ventaRepository.findAllByEstado(EstadoEnum.ACTIVO, pageable)
+                        .map(Mapper::toDTO);
             }
-            return ventaRepository.findAllByEstado(EstadoEnum.ELIMINADO).stream()
-                    .map(Mapper::toDTO)
-                    .toList();
+            return ventaRepository.findAllByEstado(EstadoEnum.ELIMINADO, pageable)
+                    .map(Mapper::toDTO);
         }
-        return ventaRepository.findAll().stream()
-                .map(Mapper::toDTO)
-                .toList();
+        return ventaRepository.findAll(pageable)
+                .map(Mapper::toDTO);
     }
 
     @Override
-    public List<VentaDTO> obtenerVentasPorSucursalYFecha(Long sucursalId, LocalDateTime fecha) {
+    public Page<VentaDTO> obtenerVentasPorSucursalYFecha(Long sucursalId, LocalDateTime fecha, Pageable pageable) {
         //Revisar si sucursal existe
         Sucursal sucursal = sucursalRepository.findById(sucursalId)
                 .orElseThrow(() -> new SucursalNoEncontradaException(sucursalId));
@@ -68,9 +67,8 @@ public class VentaServiceImpl implements VentaService{
         LocalDateTime inicio = fecha.toLocalDate().atStartOfDay();
         LocalDateTime fin = fecha.toLocalDate().atTime(LocalTime.MAX);
 
-        List<VentaDTO> lista = ventaRepository.findAllBySucursalIdAndFechaBetween(sucursalId,inicio,fin).stream()
-                .map(Mapper::toDTO)
-                .toList();
+        Page<VentaDTO> lista = ventaRepository.findAllBySucursalIdAndFechaBetween(sucursalId,inicio,fin,pageable)
+                .map(Mapper::toDTO);
 
         return lista;
     }
