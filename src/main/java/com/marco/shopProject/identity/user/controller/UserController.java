@@ -3,6 +3,7 @@ package com.marco.shopProject.identity.user.controller;
 import com.marco.shopProject.identity.user.dto.CrearUserDTO;
 import com.marco.shopProject.identity.user.dto.MostrarUserDTO;
 import com.marco.shopProject.identity.user.service.UserService;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -27,7 +28,7 @@ public class UserController {
     public ResponseEntity<Page<MostrarUserDTO>> obtenerUsuarios(
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "ACTIVO") String estado,
-            @PageableDefault(size = 20, page = 0) Pageable pageable){
+            @ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable){
 
         if(role != null){
             return ResponseEntity.ok().body(userService.obtenerUsuariosPorRol(role,estado, pageable));

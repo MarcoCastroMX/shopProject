@@ -3,6 +3,7 @@ package com.marco.shopProject.catalog.producto.controller;
 import com.marco.shopProject.catalog.producto.dto.ProductoInventarioDTO;
 import com.marco.shopProject.catalog.producto.service.ProductoService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,7 @@ public class ProductoController {
     }
 
     @GetMapping("productos")
-    public ResponseEntity<Page<ProductoInventarioDTO>> getAllProducts(@PageableDefault(size = 20, page = 0) Pageable pageable){
+    public ResponseEntity<Page<ProductoInventarioDTO>> getAllProducts(@ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable){
         return ResponseEntity.ok(productoService.getAllProducts(pageable));
     }
 

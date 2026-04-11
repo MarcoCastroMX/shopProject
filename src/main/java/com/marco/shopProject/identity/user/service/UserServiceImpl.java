@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService{
     public Page<MostrarUserDTO> obtenerUsuarios(String estado, Pageable pageable) {
         EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
 
-        return userRepository.findAllUserByEstado(estadoBuscado)
+        return userRepository.findAllUserByEstado(estadoBuscado, pageable)
                 .map(Mapper::userToMostrarUserDTO);
     }
 

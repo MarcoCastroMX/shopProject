@@ -4,6 +4,7 @@ import com.marco.shopProject.sales.venta.dto.CrearVentaDTO;
 import com.marco.shopProject.sales.venta.dto.VentaDTO;
 import com.marco.shopProject.sales.venta.service.VentaService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +36,7 @@ public class VentaController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate fecha,
             @RequestParam(required = false) Long sucursalId,
-            @PageableDefault(size = 20, page = 0) Pageable pageable
+            @ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable
             ){
         LocalDateTime fechaConHora = (fecha != null) ? fecha.atStartOfDay() : null;
 

@@ -3,6 +3,7 @@ package com.marco.shopProject.catalog.sucursal.controller;
 import com.marco.shopProject.catalog.sucursal.dto.SucursalDTO;
 import com.marco.shopProject.catalog.sucursal.service.SucursalService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +27,7 @@ public class SucursalController {
     }
 
     @GetMapping("sucursales")
-    public ResponseEntity<Page<SucursalDTO>> getAllSucursales(@PageableDefault(size = 20, page = 0)Pageable pageable){
+    public ResponseEntity<Page<SucursalDTO>> getAllSucursales(@ParameterObject @PageableDefault(size = 20, page = 0)Pageable pageable){
         return  ResponseEntity.ok(sucursalService.getAllSucursales(pageable));
     }
 

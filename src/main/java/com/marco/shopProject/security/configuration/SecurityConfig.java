@@ -46,7 +46,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/estadistica/**").hasAuthority(RolesEnum.ROLE_MANAGER.name())
                         .requestMatchers("/api/usuarios/**").hasAuthority(RolesEnum.ROLE_ADMIN.name())
                         .requestMatchers("/api/roles/**").hasAuthority(RolesEnum.ROLE_ADMIN.name())
-                        .requestMatchers("/api/auth/**").permitAll())
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
