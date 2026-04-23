@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.marco</groupId>
 	<artifactId>shopProject</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<name>pruebaTecnica</name>
 	<description>Prueba tecnica del canal Todo Code</description>
 	<url/>
@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>23</java.version>
+		<java.version>25</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -115,6 +115,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>RetailFlow_API-1.0.0</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
