@@ -18,6 +18,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class Mapper {
 
+    private Mapper(){
+
+    }
+
     public static ProductoInventarioDTO toDTO(Producto producto){
         return ProductoInventarioDTO.builder()
                 .id(producto.getId())
