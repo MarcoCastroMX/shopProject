@@ -68,7 +68,7 @@ public class ProductoServiceImpl implements ProductoService{
 
         Producto nuevoProducto = jsonMapper.updateValue(producto,bodyArray);
 
-        return Mapper.toDTO(nuevoProducto);
+        return Mapper.toDTO(productoRepository.save(nuevoProducto));
     }
 
     @Override
