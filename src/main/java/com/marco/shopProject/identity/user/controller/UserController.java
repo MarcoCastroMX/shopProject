@@ -3,6 +3,7 @@ package com.marco.shopProject.identity.user.controller;
 import com.marco.shopProject.identity.user.dto.CrearUserDTO;
 import com.marco.shopProject.identity.user.dto.MostrarUserDTO;
 import com.marco.shopProject.identity.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -42,7 +42,7 @@ public class UserController {
     }
 
     @PostMapping("/usuarios")
-    public ResponseEntity<MostrarUserDTO> crearUsuario(@RequestBody CrearUserDTO newUser){
+    public ResponseEntity<MostrarUserDTO> crearUsuario(@Valid @RequestBody CrearUserDTO newUser){
         MostrarUserDTO user = userService.crearUsuario(newUser);
 
         URI location = URI.create("/usuarios/"+user.id());

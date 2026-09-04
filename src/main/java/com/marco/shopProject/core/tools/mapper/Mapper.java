@@ -13,6 +13,7 @@ import com.marco.shopProject.catalog.producto.dto.MostrarProductoDTO;
 import com.marco.shopProject.catalog.producto.dto.ProductoInventarioDTO;
 import com.marco.shopProject.catalog.sucursal.dto.SucursalDTO;
 import com.marco.shopProject.sales.venta.dto.VentaDTO;
+import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,7 +41,14 @@ public class Mapper {
     }
 
     public static Producto toDTO(ProductoInventarioDTO productoDTO){
-        return new Producto(productoDTO.id(),productoDTO.nombre(),productoDTO.precio(), productoDTO.categoria(),productoDTO.cantidad());
+        return Producto.builder()
+                .id(productoDTO.id())
+                .nombre(productoDTO.nombre())
+                .precio(productoDTO.precio())
+                .categoria(productoDTO.categoria())
+                .cantidad(productoDTO.cantidad())
+                .estado(EstadoEnum.ACTIVO)
+                .build();
     }
 
     public static SucursalDTO toDTO(Sucursal sucursal){

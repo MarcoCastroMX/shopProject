@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/ventas/**").hasAuthority(RolesEnum.ROLE_USER.name())
                         .requestMatchers(HttpMethod.DELETE,"/api/sucursales/**").hasAuthority(RolesEnum.ROLE_MANAGER.name())
                         .requestMatchers("/api/sucursales/**").hasAuthority(RolesEnum.ROLE_USER.name())
+                        .requestMatchers(HttpMethod.PATCH,"/api/productos/*/restaurar").hasAuthority(RolesEnum.ROLE_MANAGER.name())
                         .requestMatchers(HttpMethod.DELETE,"/api/productos/**").hasAuthority(RolesEnum.ROLE_MANAGER.name())
                         .requestMatchers("/api/productos/**").hasAuthority(RolesEnum.ROLE_USER.name())
                         .requestMatchers("/api/estadistica/**").hasAuthority(RolesEnum.ROLE_MANAGER.name())

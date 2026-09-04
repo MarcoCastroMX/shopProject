@@ -2,6 +2,7 @@ package com.marco.shopProject.catalog.producto.controller;
 
 import com.marco.shopProject.catalog.producto.dto.ProductoInventarioDTO;
 import com.marco.shopProject.catalog.producto.service.ProductoService;
+import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,10 @@ public class ProductoController {
     }
 
     @GetMapping("productos")
-    public ResponseEntity<Page<ProductoInventarioDTO>> getAllProducts(@ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable){
-        return ResponseEntity.ok(productoService.getAllProducts(pageable));
+    public ResponseEntity<Page<ProductoInventarioDTO>> getAllProducts(
+            @RequestParam(defaultValue = "ACTIVO") EstadoEnum estado,
+            @ParameterObject @PageableDefault(size = 20, page = 0) Pageable pageable){
+        return ResponseEntity.ok(productoService.getAllProducts(estado, pageable));
     }
 
     @GetMapping("productos/{id}")
@@ -56,6 +59,11 @@ public class ProductoController {
     public ResponseEntity<Void> deleteProduct(@PathVariable int id){
         productoService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("productos/{id}/restaurar")
+    public ResponseEntity<ProductoInventarioDTO> restoreProduct(@PathVariable int id){
+        return ResponseEntity.ok(productoService.restoreProduct(id));
     }
 
 }

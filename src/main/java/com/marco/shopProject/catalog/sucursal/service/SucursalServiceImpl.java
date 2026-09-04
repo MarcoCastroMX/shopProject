@@ -64,7 +64,7 @@ public class SucursalServiceImpl implements SucursalService {
         bodyArray.remove("id");
 
         Sucursal newSucursal = jsonMapper.updateValue(sucursal,bodyArray);
-        return Mapper.toDTO(newSucursal);
+        return Mapper.toDTO(sucursalRepository.save(newSucursal));
     }
 
     @Override

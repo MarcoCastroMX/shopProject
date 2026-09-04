@@ -1,4 +1,4 @@
-package com.marco.shopProject.identity.user.exception;
+package com.marco.shopProject.core.exception;
 
 public class SuperUserException extends RuntimeException {
     public SuperUserException(String message) {

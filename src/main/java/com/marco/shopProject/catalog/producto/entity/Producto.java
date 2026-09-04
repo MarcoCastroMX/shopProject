@@ -1,5 +1,6 @@
 package com.marco.shopProject.catalog.producto.entity;
 
+import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,4 +18,9 @@ public class Producto {
     private Double precio;
     private String categoria;
     private int cantidad;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private EstadoEnum estado = EstadoEnum.ACTIVO;
 }

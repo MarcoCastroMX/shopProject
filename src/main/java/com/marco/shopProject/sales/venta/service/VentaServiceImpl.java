@@ -1,5 +1,6 @@
 package com.marco.shopProject.sales.venta.service;
 
+import com.marco.shopProject.identity.user.exception.EstadoInvalidoException;
 import com.marco.shopProject.sales.detalleVenta.dto.CrearDetalleVentaDTO;
 import com.marco.shopProject.catalog.producto.exception.ProductoNoEncontradoException;
 import com.marco.shopProject.catalog.sucursal.exception.SucursalNoEncontradaException;
@@ -24,6 +25,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 @Service
 public class VentaServiceImpl implements VentaService{
@@ -41,16 +44,15 @@ public class VentaServiceImpl implements VentaService{
 
     @Override
     public Page<VentaDTO> obtenerVentas(String estado, Pageable pageable) {
-        if(estado!=null){
-            if(estado.equals("ACTIVO")){
-                return ventaRepository.findAllByEstado(EstadoEnum.ACTIVO, pageable)
-                        .map(Mapper::toDTO);
-            }
-            return ventaRepository.findAllByEstado(EstadoEnum.ELIMINADO, pageable)
+        Optional<EstadoEnum> estadoEnum = convertirEstado(estado);
+
+        if(estadoEnum.isPresent()){
+            return ventaRepository.findAllByEstado(estadoEnum.get(), pageable)
                     .map(Mapper::toDTO);
         }
+
         return ventaRepository.findAll(pageable)
-                .map(Mapper::toDTO);
+                    .map(Mapper::toDTO);
     }
 
     @Override
@@ -92,7 +94,9 @@ public class VentaServiceImpl implements VentaService{
         Double totalCalculado = 0.0;
 
         for(CrearDetalleVentaDTO v : ventaRecibida.detalle()){
-            Producto producto = productoRepository.findById(v.productoId()).orElseThrow(()-> new ProductoNoEncontradoException(v.productoId()));
+            Producto producto = productoRepository
+                    .findByIdAndEstado(Long.valueOf(v.productoId()), EstadoEnum.ACTIVO)
+                    .orElseThrow(()-> new ProductoNoEncontradoException(v.productoId()));
 
             if(producto.getCantidad() == 0 || producto.getCantidad() < v.cantidad()){
                 throw new CantidadExcedenteException("Cantidad Mayor a Producto Disponible");
@@ -138,5 +142,17 @@ public class VentaServiceImpl implements VentaService{
         venta = ventaRepository.save(venta);
 
         return Mapper.toDTO(venta);
+    }
+
+    private Optional<EstadoEnum> convertirEstado(String estado) {
+        if(estado == null || estado.isBlank()){
+            return Optional.empty();
+        }
+
+        try{
+            return Optional.of(EstadoEnum.valueOf(estado.trim().toUpperCase(Locale.ROOT)));
+        }catch(IllegalArgumentException exception){
+            throw new EstadoInvalidoException(estado);
+        }
     }
 }

@@ -13,7 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumMap;
+import java.util.Map;
 
 @Component
 public class SuperUsuario implements CommandLineRunner {
@@ -38,20 +39,22 @@ public class SuperUsuario implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        List<Rol> rolList = rolRepository.findAll();
-        if(rolList.isEmpty()){
+        Map<RolesEnum, Rol> rolesPorTipo = new EnumMap<>(RolesEnum.class);
 
-            for(RolesEnum roles : RolesEnum.values()){
-                Rol rol = Rol.builder()
-                        .rol(roles)
+        for(RolesEnum tipoRol : RolesEnum.values()){
+            Rol rol = rolRepository.findRolByRol(tipoRol);
+
+            if(rol == null){
+                rol = Rol.builder()
+                        .rol(tipoRol)
                         .users(new ArrayList<>())
                         .build();
 
-                rolRepository.save(rol);
-                rolList.add(rol);
+                rol = rolRepository.save(rol);
             }
-        }
 
+            rolesPorTipo.put(tipoRol, rol);
+        }
 
         User user = userRepository.findUserByEmail(email)
                 .orElse(new User());
@@ -64,7 +67,7 @@ public class SuperUsuario implements CommandLineRunner {
                     .estado(EstadoEnum.ACTIVO)
                     .build();
 
-            user.addRol(rolList.getFirst());
+            user.addRol(rolesPorTipo.get(RolesEnum.ROLE_ADMIN));
             userRepository.save(user);
         }
     }

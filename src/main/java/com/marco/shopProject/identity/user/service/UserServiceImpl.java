@@ -1,16 +1,17 @@
 package com.marco.shopProject.identity.user.service;
 
+import com.marco.shopProject.identity.user.exception.EstadoInvalidoException;
+import com.marco.shopProject.identity.user.exception.RolInvalidoException;
 import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import com.marco.shopProject.core.tools.enums.RolesEnum;
 import com.marco.shopProject.core.tools.mapper.Mapper;
 import com.marco.shopProject.identity.rol.entity.Rol;
-import com.marco.shopProject.identity.rol.exception.RolNotFoundException;
 import com.marco.shopProject.identity.rol.repository.RolRepository;
 import com.marco.shopProject.identity.user.dto.CrearUserDTO;
 import com.marco.shopProject.identity.user.dto.MostrarUserDTO;
 import com.marco.shopProject.identity.user.entity.User;
 import com.marco.shopProject.identity.user.exception.EmailAlreadyTakenException;
-import com.marco.shopProject.identity.user.exception.SuperUserException;
+import com.marco.shopProject.core.exception.SuperUserException;
 import com.marco.shopProject.identity.user.exception.UserNotFoundException;
 import com.marco.shopProject.identity.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -19,8 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public Page<MostrarUserDTO> obtenerUsuarios(String estado, Pageable pageable) {
-        EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
+        EstadoEnum estadoBuscado = convertirEstado(estado);
 
         return userRepository.findAllUserByEstado(estadoBuscado, pageable)
                 .map(Mapper::userToMostrarUserDTO);
@@ -51,8 +51,8 @@ public class UserServiceImpl implements UserService{
     @Override
     public Page<MostrarUserDTO> obtenerUsuariosPorRol(String rolString, String estado, Pageable pageable) {
 
-        RolesEnum rolBuscado = RolesEnum.valueOf(rolString);
-        EstadoEnum estadoBuscado = EstadoEnum.valueOf(estado);
+        RolesEnum rolBuscado = convertirRol(rolString);
+        EstadoEnum estadoBuscado = convertirEstado(estado);
 
         Rol rol = rolRepository.findRolByRol(rolBuscado);
 
@@ -88,20 +88,12 @@ public class UserServiceImpl implements UserService{
                 .estado(EstadoEnum.ACTIVO)
                 .build();
 
-        List<Rol> list = new ArrayList<>();
         for(RolesEnum rol : user.roles()){
             Rol search = rolRepository.findRolByRol(rol);
-            if(search != null){
-                list.add(search);
-                newUser.addRol(search);
-            }else{
-                throw new RolNotFoundException("Rol No Encontrado");
-            }
+            newUser.addRol(search);
         }
 
-        User savedUser = userRepository.save(newUser);
-
-        return Mapper.userToMostrarUserDTO(savedUser);
+        return Mapper.userToMostrarUserDTO(userRepository.save(newUser));
     }
 
     @Override
@@ -114,8 +106,7 @@ public class UserServiceImpl implements UserService{
 
         User newUser = jsonMapper.updateValue(user,body);
 
-        userRepository.save(user);
-        return Mapper.userToMostrarUserDTO(user);
+        return Mapper.userToMostrarUserDTO(userRepository.save(newUser));
     }
 
     @Override
@@ -130,5 +121,29 @@ public class UserServiceImpl implements UserService{
         user.setEstado(EstadoEnum.ELIMINADO);
 
         userRepository.save(user);
+    }
+
+    private EstadoEnum convertirEstado(String estado) {
+        if(estado == null || estado.isBlank()){
+            throw new EstadoInvalidoException(estado);
+        }
+
+        try{
+            return EstadoEnum.valueOf(estado.trim().toUpperCase(Locale.ROOT));
+        }catch(IllegalArgumentException exception){
+            throw new EstadoInvalidoException(estado);
+        }
+    }
+
+    private RolesEnum convertirRol(String rol) {
+        if(rol == null || rol.isBlank()){
+            throw new RolInvalidoException(rol);
+        }
+
+        try{
+            return RolesEnum.valueOf(rol.trim().toUpperCase(Locale.ROOT));
+        }catch(IllegalArgumentException exception){
+            throw new RolInvalidoException(rol);
+        }
     }
 }

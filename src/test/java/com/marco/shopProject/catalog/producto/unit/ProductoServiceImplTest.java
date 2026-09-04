@@ -5,6 +5,7 @@ import com.marco.shopProject.catalog.producto.entity.Producto;
 import com.marco.shopProject.catalog.producto.exception.ProductoNoEncontradoException;
 import com.marco.shopProject.catalog.producto.repository.ProductoRepository;
 import com.marco.shopProject.catalog.producto.service.ProductoServiceImpl;
+import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,12 +69,12 @@ class ProductoServiceImplTest {
                 crearDTO(2L, "Monitor", "Tecnologia", 4000.0, 8)
         );
 
-        when(productoRepository.findAll(pageable))
+        when(productoRepository.findAllByEstado(EstadoEnum.ACTIVO, pageable))
                 .thenReturn(paginaRepositorio);
 
         // Act
         Page<ProductoInventarioDTO> resultado =
-                productoService.getAllProducts(pageable);
+                productoService.getAllProducts(EstadoEnum.ACTIVO, pageable);
 
         // Assert
         assertEquals(contenidoEsperado, resultado.getContent());
@@ -85,7 +86,7 @@ class ProductoServiceImplTest {
         assertFalse(resultado.hasNext());
         assertFalse(resultado.hasPrevious());
 
-        verify(productoRepository).findAll(pageable);
+        verify(productoRepository).findAllByEstado(EstadoEnum.ACTIVO, pageable);
     }
 
     @Test
@@ -94,12 +95,12 @@ class ProductoServiceImplTest {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Producto> paginaVacia = Page.empty(pageable);
 
-        when(productoRepository.findAll(pageable))
+        when(productoRepository.findAllByEstado(EstadoEnum.ELIMINADO, pageable))
                 .thenReturn(paginaVacia);
 
         // Act
         Page<ProductoInventarioDTO> resultado =
-                productoService.getAllProducts(pageable);
+                productoService.getAllProducts(EstadoEnum.ELIMINADO, pageable);
 
         // Assert
         assertTrue(resultado.isEmpty());
@@ -111,7 +112,7 @@ class ProductoServiceImplTest {
         assertFalse(resultado.hasNext());
         assertFalse(resultado.hasPrevious());
 
-        verify(productoRepository).findAll(pageable);
+        verify(productoRepository).findAllByEstado(EstadoEnum.ELIMINADO, pageable);
     }
 
     @Test
@@ -125,7 +126,7 @@ class ProductoServiceImplTest {
                 1L, "Laptop", "Tecnologia", 15000.0, 5
         );
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.of(producto));
 
         // Act
@@ -134,7 +135,7 @@ class ProductoServiceImplTest {
 
         // Assert
         assertEquals(esperado, resultado);
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
     }
 
     @Test
@@ -142,7 +143,7 @@ class ProductoServiceImplTest {
         // Arrange
         int id = 1;
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.empty());
 
         // Act y Assert
@@ -151,7 +152,7 @@ class ProductoServiceImplTest {
                 () -> productoService.obtenerProductoPorId(id)
         );
 
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
     }
 
     @Test
@@ -182,6 +183,7 @@ class ProductoServiceImplTest {
         Producto productoEnviado = productoCaptor.getValue();
 
         assertNull(productoEnviado.getId());
+        assertEquals(EstadoEnum.ACTIVO, productoEnviado.getEstado());
         verificarCampos(recibido, productoEnviado);
     }
 
@@ -203,7 +205,7 @@ class ProductoServiceImplTest {
                 1L, "Nombre nuevo", "Categoria nueva", 250.0, 4
         );
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.of(productoExistente));
         when(productoRepository.save(any(Producto.class)))
                 .thenReturn(productoGuardado);
@@ -215,7 +217,7 @@ class ProductoServiceImplTest {
         // Assert
         assertEquals(esperado, resultado);
 
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
         verify(productoRepository).save(productoCaptor.capture());
 
         Producto productoEnviado = productoCaptor.getValue();
@@ -232,7 +234,7 @@ class ProductoServiceImplTest {
                 null, "Nombre nuevo", "Categoria nueva", 250.0, 4
         );
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.empty());
 
         // Act y Assert
@@ -241,7 +243,7 @@ class ProductoServiceImplTest {
                 () -> productoService.updateProduct(id, recibido)
         );
 
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
         verify(productoRepository, never()).save(any(Producto.class));
     }
 
@@ -265,7 +267,7 @@ class ProductoServiceImplTest {
                 1L, "Nombre actualizado", "Tecnologia", 200.0, 2
         );
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.of(productoExistente));
         when(jsonMapper.updateValue(productoExistente, body))
                 .thenReturn(productoActualizado);
@@ -279,7 +281,7 @@ class ProductoServiceImplTest {
         // Assert
         assertEquals(esperado, resultado);
 
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
         verify(jsonMapper).updateValue(productoExistente, body);
         verify(productoRepository).save(productoActualizado);
     }
@@ -295,6 +297,7 @@ class ProductoServiceImplTest {
 
         Map<String, Object> body = new HashMap<>();
         body.put("id", 999L);
+        body.put("estado", "ELIMINADO");
         body.put("nombre", "Nombre protegido");
 
         Producto productoActualizado = crearProducto(
@@ -304,7 +307,7 @@ class ProductoServiceImplTest {
                 1L, "Nombre protegido", "Tecnologia", 100.0, 2
         );
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.of(productoExistente));
         when(jsonMapper.updateValue(eq(productoExistente), anyMap()))
                 .thenReturn(productoActualizado);
@@ -318,7 +321,7 @@ class ProductoServiceImplTest {
         // Assert
         assertEquals(esperado, resultado);
 
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
         verify(jsonMapper).updateValue(
                 eq(productoExistente),
                 bodyCaptor.capture()
@@ -328,6 +331,7 @@ class ProductoServiceImplTest {
         Map<String, Object> bodyEnviado = bodyCaptor.getValue();
 
         assertFalse(bodyEnviado.containsKey("id"));
+        assertFalse(bodyEnviado.containsKey("estado"));
         assertEquals("Nombre protegido", bodyEnviado.get("nombre"));
     }
 
@@ -339,7 +343,7 @@ class ProductoServiceImplTest {
         Map<String, Object> body = new HashMap<>();
         body.put("nombre", "Nombre actualizado");
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findByIdAndEstado(1L, EstadoEnum.ACTIVO))
                 .thenReturn(Optional.empty());
 
         // Act y Assert
@@ -348,28 +352,51 @@ class ProductoServiceImplTest {
                 () -> productoService.partialUpdateProduct(id, body)
         );
 
-        verify(productoRepository).findById(id);
+        verify(productoRepository).findByIdAndEstado(1L, EstadoEnum.ACTIVO);
         verifyNoInteractions(jsonMapper);
         verify(productoRepository, never()).save(any(Producto.class));
     }
 
     @Test
-    void deleteProduct_cuandoProductoExiste_eliminaProducto() {
+    void deleteProduct_cuandoProductoEstaActivo_loMarcaComoEliminado() {
         // Arrange
         int id = 1;
         Producto producto = crearProducto(
                 1L, "Laptop", "Tecnologia", 15000.0, 5
         );
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findById(1L))
                 .thenReturn(Optional.of(producto));
 
         // Act
         productoService.deleteProduct(id);
 
         // Assert
-        verify(productoRepository).findById(id);
-        verify(productoRepository).delete(producto);
+        verify(productoRepository).findById(1L);
+        verify(productoRepository).save(productoCaptor.capture());
+
+        assertEquals(EstadoEnum.ELIMINADO, productoCaptor.getValue().getEstado());
+    }
+
+    @Test
+    void deleteProduct_cuandoProductoYaEstaEliminado_mantieneOperacionIdempotente() {
+        // Arrange
+        int id = 1;
+        Producto producto = crearProducto(
+                1L, "Laptop", "Tecnologia", 15000.0, 5
+        );
+        producto.setEstado(EstadoEnum.ELIMINADO);
+
+        when(productoRepository.findById(1L))
+                .thenReturn(Optional.of(producto));
+
+        // Act
+        productoService.deleteProduct(id);
+
+        // Assert
+        verify(productoRepository).findById(1L);
+        verify(productoRepository, never()).save(any(Producto.class));
+        assertEquals(EstadoEnum.ELIMINADO, producto.getEstado());
     }
 
     @Test
@@ -377,7 +404,7 @@ class ProductoServiceImplTest {
         // Arrange
         int id = 1;
 
-        when(productoRepository.findById(id))
+        when(productoRepository.findById(1L))
                 .thenReturn(Optional.empty());
 
         // Act y Assert
@@ -386,8 +413,76 @@ class ProductoServiceImplTest {
                 () -> productoService.deleteProduct(id)
         );
 
-        verify(productoRepository).findById(id);
-        verify(productoRepository, never()).delete(any(Producto.class));
+        verify(productoRepository).findById(1L);
+        verify(productoRepository, never()).save(any(Producto.class));
+    }
+
+    @Test
+    void restoreProduct_cuandoProductoEstaEliminado_loActivaYRetornaDTO() {
+        // Arrange
+        int id = 1;
+        Producto producto = crearProducto(
+                1L, "Laptop", "Tecnologia", 15000.0, 5
+        );
+        producto.setEstado(EstadoEnum.ELIMINADO);
+        ProductoInventarioDTO esperado = crearDTO(
+                1L, "Laptop", "Tecnologia", 15000.0, 5
+        );
+
+        when(productoRepository.findById(1L))
+                .thenReturn(Optional.of(producto));
+        when(productoRepository.save(producto))
+                .thenReturn(producto);
+
+        // Act
+        ProductoInventarioDTO resultado = productoService.restoreProduct(id);
+
+        // Assert
+        assertEquals(esperado, resultado);
+        assertEquals(EstadoEnum.ACTIVO, producto.getEstado());
+        verify(productoRepository).findById(1L);
+        verify(productoRepository).save(producto);
+    }
+
+    @Test
+    void restoreProduct_cuandoProductoYaEstaActivo_retornaDTOSinGuardar() {
+        // Arrange
+        int id = 1;
+        Producto producto = crearProducto(
+                1L, "Laptop", "Tecnologia", 15000.0, 5
+        );
+        ProductoInventarioDTO esperado = crearDTO(
+                1L, "Laptop", "Tecnologia", 15000.0, 5
+        );
+
+        when(productoRepository.findById(1L))
+                .thenReturn(Optional.of(producto));
+
+        // Act
+        ProductoInventarioDTO resultado = productoService.restoreProduct(id);
+
+        // Assert
+        assertEquals(esperado, resultado);
+        verify(productoRepository).findById(1L);
+        verify(productoRepository, never()).save(any(Producto.class));
+    }
+
+    @Test
+    void restoreProduct_cuandoProductoNoExiste_lanzaProductoNoEncontradoException() {
+        // Arrange
+        int id = 1;
+
+        when(productoRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        // Act y Assert
+        assertThrows(
+                ProductoNoEncontradoException.class,
+                () -> productoService.restoreProduct(id)
+        );
+
+        verify(productoRepository).findById(1L);
+        verify(productoRepository, never()).save(any(Producto.class));
     }
 
     private Producto crearProducto(

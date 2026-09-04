@@ -1,10 +1,10 @@
 package com.marco.shopProject.core.exception;
 
 import com.marco.shopProject.catalog.producto.exception.ProductoNoEncontradoException;
-import com.marco.shopProject.identity.rol.exception.RolNotFoundException;
 import com.marco.shopProject.catalog.sucursal.exception.SucursalNoEncontradaException;
 import com.marco.shopProject.identity.user.exception.EmailAlreadyTakenException;
-import com.marco.shopProject.identity.user.exception.SuperUserException;
+import com.marco.shopProject.identity.user.exception.EstadoInvalidoException;
+import com.marco.shopProject.identity.user.exception.RolInvalidoException;
 import com.marco.shopProject.identity.user.exception.UserNotFoundException;
 import com.marco.shopProject.sales.venta.exception.CantidadExcedenteException;
 import com.marco.shopProject.sales.venta.exception.VentaNoEncontradaException;
@@ -33,6 +33,34 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
                 .error("Peticion Invalida")
                 .message(String.format("Error: El parametro '%s' esperaba un tipo %s, pero recibio un '%s'",ex.getName(),ex.getRequiredType().getSimpleName(),ex.getValue().toString()))
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
+
+    @ExceptionHandler(EstadoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> estadoInvalido(
+            EstadoInvalidoException ex,
+            HttpServletRequest request){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
+                .error("Peticion Invalida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
+
+    @ExceptionHandler(RolInvalidoException.class)
+    public ResponseEntity<ErrorResponse> rolInvalido(
+            RolInvalidoException ex,
+            HttpServletRequest request){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
+                .error("Peticion Invalida")
+                .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
@@ -107,21 +135,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(exception = {UsernameNotFoundException.class, UserNotFoundException.class})
     public ResponseEntity<ErrorResponse> usuarioNoEncontrado(
             UsernameNotFoundException ex,
-            HttpServletRequest request
-    ){
-        ErrorResponse response = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Petion Invalida")
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
-    @ExceptionHandler(RolNotFoundException.class)
-    public ResponseEntity<ErrorResponse> rolNoEncontrado(
-            RolNotFoundException ex,
             HttpServletRequest request
     ){
         ErrorResponse response = ErrorResponse.builder()
