@@ -38,5 +38,6 @@ public class Venta {
     @PrePersist
     public void prePersist(){
         this.fecha = LocalDateTime.now();
+        this.estado = EstadoEnum.ACTIVO;
     }
 }

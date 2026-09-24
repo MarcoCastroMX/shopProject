@@ -15,11 +15,14 @@ import com.marco.shopProject.core.tools.mapper.Mapper;
 import com.marco.shopProject.catalog.producto.repository.ProductoRepository;
 import com.marco.shopProject.catalog.sucursal.repository.SucursalRepository;
 import com.marco.shopProject.sales.venta.exception.CantidadExcedenteException;
+import com.marco.shopProject.sales.venta.exception.FechaInvalidaException;
+import com.marco.shopProject.sales.venta.exception.VentaNoEncontradaException;
 import com.marco.shopProject.sales.venta.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -63,7 +66,7 @@ public class VentaServiceImpl implements VentaService{
 
         //Revisar si la fecha es valida
         if(fecha.isAfter(LocalDateTime.now())){
-            throw new RuntimeException("Fecha Invalida");
+            throw new FechaInvalidaException(fecha);
         }
 
         LocalDateTime inicio = fecha.toLocalDate().atStartOfDay();
@@ -77,17 +80,18 @@ public class VentaServiceImpl implements VentaService{
 
     @Override
     public VentaDTO obtenerVentaPorId(Long id) {
-        Venta venta = ventaRepository.findById(id).orElseThrow(()-> new RuntimeException("Venta no Encontrada"));
+        Venta venta = ventaRepository.findById(id)
+                .orElseThrow(() -> new VentaNoEncontradaException(id));
         return Mapper.toDTO(venta);
     }
 
     @Override
-    public VentaDTO crearVenta(Long id, CrearVentaDTO ventaRecibida) {
-        Sucursal sucursal = sucursalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sucursal no Encontrada"));
+    @Transactional
+    public VentaDTO crearVenta(CrearVentaDTO ventaRecibida) {
+        Sucursal sucursal = sucursalRepository.findById(ventaRecibida.sucursalId())
+                .orElseThrow(() -> new SucursalNoEncontradaException((ventaRecibida.sucursalId())));
 
         Venta venta = new Venta();
-        venta.setEstado(EstadoEnum.valueOf(ventaRecibida.estado()));
         venta.setSucursal(sucursal);
 
         List<DetalleVenta> detalles = new ArrayList<>();
@@ -125,10 +129,16 @@ public class VentaServiceImpl implements VentaService{
     }
 
     @Override
+    @Transactional
     public VentaDTO eliminarVenta(Long id) {
         //Buscar si existe la venta
         Venta venta = ventaRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+                orElseThrow(() -> new VentaNoEncontradaException(id));
+
+        //La baja logica es idempotente: si ya fue eliminada no vuelve a guardarse
+        if(venta.getEstado() == EstadoEnum.ELIMINADO){
+            return Mapper.toDTO(venta);
+        }
 
         //Cambiar estado de la venta
         venta.setEstado(EstadoEnum.ELIMINADO);

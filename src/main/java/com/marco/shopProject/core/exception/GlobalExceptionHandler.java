@@ -2,11 +2,14 @@ package com.marco.shopProject.core.exception;
 
 import com.marco.shopProject.catalog.producto.exception.ProductoNoEncontradoException;
 import com.marco.shopProject.catalog.sucursal.exception.SucursalNoEncontradaException;
+import com.marco.shopProject.identity.auth.exception.RefreshTokenInvalidoException;
 import com.marco.shopProject.identity.user.exception.EmailAlreadyTakenException;
 import com.marco.shopProject.identity.user.exception.EstadoInvalidoException;
 import com.marco.shopProject.identity.user.exception.RolInvalidoException;
+import com.marco.shopProject.identity.user.exception.UsuarioEliminadoException;
 import com.marco.shopProject.identity.user.exception.UserNotFoundException;
 import com.marco.shopProject.sales.venta.exception.CantidadExcedenteException;
+import com.marco.shopProject.sales.venta.exception.FechaInvalidaException;
 import com.marco.shopProject.sales.venta.exception.VentaNoEncontradaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -110,8 +113,8 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
-                .error("Petion Invalida")
-                .message(String.format("El id '%s'no corresponde a un id existente en base de datos",ex.getMessage()))
+                .error("Peticion Invalida")
+                .message(String.format("El id '%s' no corresponde a una sucursal existente en base de datos",ex.getMessage()))
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
@@ -125,8 +128,23 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
-                .error("Petion Invalida")
-                .message(String.format("El id '%s'no corresponde a un id existente en base de datos",ex.getMessage()))
+                .error("Peticion Invalida")
+                .message(String.format("El id '%s' no corresponde a una venta existente en base de datos",ex.getMessage()))
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
+
+    @ExceptionHandler(FechaInvalidaException.class)
+    public ResponseEntity<ErrorResponse> fechaInvalida(
+            FechaInvalidaException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNPROCESSABLE_CONTENT.value())
+                .error("Peticion Invalida")
+                .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
@@ -154,12 +172,42 @@ public class GlobalExceptionHandler {
     ){
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .error("Petion Invalida")
+                .status(HttpStatus.CONFLICT.value())
+                .error("Conflicto de datos")
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(UsuarioEliminadoException.class)
+    public ResponseEntity<ErrorResponse> usuarioEliminado(
+            UsuarioEliminadoException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Autenticacion fallida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(RefreshTokenInvalidoException.class)
+    public ResponseEntity<ErrorResponse> refreshTokenInvalido(
+            RefreshTokenInvalidoException ex,
+            HttpServletRequest request
+    ){
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Autenticacion fallida")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(SuperUserException.class)

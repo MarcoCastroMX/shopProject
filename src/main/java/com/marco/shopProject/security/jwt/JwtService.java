@@ -1,7 +1,10 @@
 package com.marco.shopProject.security.jwt;
 
+import com.marco.shopProject.core.tools.enums.EstadoEnum;
+import com.marco.shopProject.core.tools.enums.JwtTokenPurposeEnum;
 import com.marco.shopProject.identity.rol.entity.Rol;
 import com.marco.shopProject.identity.user.entity.User;
+import com.marco.shopProject.security.jwt.dto.JwtTokenData;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -12,7 +15,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class JwtService {
@@ -27,15 +29,15 @@ public class JwtService {
     private long refreshExpiration;
 
     public String generateToken(final User user){
-        return buildToken(user,jwtExpiration);
+        return buildToken(user, jwtExpiration, JwtTokenPurposeEnum.ACCESS);
     }
 
     public String generateRefreshToken(final User user){
-        return buildToken(user,refreshExpiration);
+        return buildToken(user, refreshExpiration, JwtTokenPurposeEnum.REFRESH);
     }
 
-    private String buildToken(User user, long expiration) {
-
+    private String buildToken(User user, long expiration, JwtTokenPurposeEnum purpose)
+    {
         List<String> rolList = user.getRoles().stream()
                 .map(Rol::getRol)
                 .map(String::valueOf)
@@ -43,9 +45,12 @@ public class JwtService {
 
         return Jwts.builder()
                 .id(user.getId().toString())
-                .claims(Map.of("name",user.getNombre(),"roles",rolList,"estado",user.getEstado().toString()))
+                .claim("name", user.getNombre())
+                .claim("roles", rolList)
+                .claim("estado", user.getEstado().name())
+                .claim("token_type", purpose.name())
                 .subject(user.getEmail())
-                .issuedAt(new Date(System.currentTimeMillis()))
+                .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey())
                 .compact();
@@ -56,62 +61,39 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String extractUsername(String token) {
-        final Claims jwtToken = Jwts.parser()
+    public JwtTokenData parseBearerToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Encabezado Bearer inválido");
+        }
+
+        String token = authHeader.substring(7);
+        if (token.isBlank()) {
+            throw new IllegalArgumentException("Token vacío");
+        }
+
+        Claims claims = Jwts.parser()
                 .verifyWith(getSignInKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
 
-        return jwtToken.getSubject();
-    }
+        String estado = claims.get("estado", String.class);
+        String purpose = claims.get("token_type", String.class);
+        List<?> rolesClaim = claims.get("roles", List.class);
 
-    public String extractId(String token){
-        final Claims jwtToken = Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        List<String> roles = rolesClaim == null
+                ? List.of()
+                : rolesClaim.stream()
+                .map(String::valueOf)
+                .toList();
 
-        return jwtToken.getId();
-    }
-
-    public boolean isTokenValid(String token, String userEmail) {
-        final String username = extractUsername(token);
-        return (username.equals(userEmail) && !isTokenExpired(token));
-    }
-
-    public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        final Claims jwtToken = Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return jwtToken.getExpiration();
-    }
-
-    public String extractEstado(String token){
-        final Claims jwtToken = Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return jwtToken.get("estado").toString();
-    }
-
-    public List<String> extractRoles(String token){
-        final Claims jwtToken = Jwts.parser()
-                .verifyWith(getSignInKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
-        return (List<String>) jwtToken.get("roles");
+        return new JwtTokenData(
+                token,
+                claims.getId() == null ? null : Long.valueOf(claims.getId()),
+                claims.getSubject(),
+                roles,
+                estado == null ? null : EstadoEnum.valueOf(estado),
+                purpose == null ? null : JwtTokenPurposeEnum.valueOf(purpose)
+        );
     }
 }

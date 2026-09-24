@@ -55,11 +55,11 @@ public class VentaController {
         return ResponseEntity.ok(ventaDTO);
     }
 
-    @PostMapping("/ventas/{id}")
-    public ResponseEntity<VentaDTO> createVenta(@PathVariable Long id, @Valid @RequestBody CrearVentaDTO crearVentaDTO){
-        VentaDTO venta = ventaService.crearVenta(id,crearVentaDTO);
+    @PostMapping("/ventas")
+    public ResponseEntity<VentaDTO> createVenta(@Valid @RequestBody CrearVentaDTO crearVentaDTO){
+        VentaDTO venta = ventaService.crearVenta(crearVentaDTO);
 
-        URI location = URI.create("/ventas/"+venta.id());
+        URI location = URI.create("/ventas/" + venta.id());
         return ResponseEntity.created(location).body(venta);
     }
 

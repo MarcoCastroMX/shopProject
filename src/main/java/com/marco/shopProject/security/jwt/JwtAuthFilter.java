@@ -1,6 +1,6 @@
 package com.marco.shopProject.security.jwt;
 
-import com.marco.shopProject.core.tools.enums.EstadoEnum;
+import com.marco.shopProject.security.jwt.dto.AccessTokenValidado;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,19 +10,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final AccessTokenValidator accessTokenValidator;
 
     @Override
     protected void doFilterInternal(
@@ -35,39 +38,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            filterChain.doFilter(request,response);
-            return;
-        }
+        Optional<AccessTokenValidado> resultado =
+                accessTokenValidator.validateAccessToken(
+                        request.getHeader(HttpHeaders.AUTHORIZATION)
+                );
 
-        final String jwtToken = authHeader.substring(7);
-        final String userEmail = jwtService.extractUsername(jwtToken);
+        if (resultado.isPresent()
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
+            AccessTokenValidado token = resultado.get();
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if(jwtToken == null || jwtService.isTokenExpired(jwtToken) ){
-                filterChain.doFilter(request,response);
-                return;
-            }
-
-            final List<String> rolList = jwtService.extractRoles(jwtToken);
-            final String userEstado = jwtService.extractEstado(jwtToken);
-            final boolean isActive = EstadoEnum.ACTIVO.toString().equals(userEstado);
-
-            if(rolList.isEmpty() || !isActive){
-                filterChain.doFilter(request,response);
-                return;
-            }
-
-
-            List<SimpleGrantedAuthority> authorities = rolList.stream()
+            List<SimpleGrantedAuthority> authorities = token.roles().stream()
                     .map(SimpleGrantedAuthority::new)
                     .toList();
 
-            org.springframework.security.core.userdetails.User userDetails = new org.springframework.security.core.userdetails.User(
-                    userEmail,
+            UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                    token.email(),
                     "",
-                    isActive,
+                    true,
                     true,
                     true,
                     true,
@@ -79,9 +66,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     userDetails.getAuthorities()
             );
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authToken);
+            SecurityContextHolder.setContext(context);
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }

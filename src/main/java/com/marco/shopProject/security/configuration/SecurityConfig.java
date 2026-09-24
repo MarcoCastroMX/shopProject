@@ -3,8 +3,9 @@ package com.marco.shopProject.security.configuration;
 import com.marco.shopProject.identity.auth.entity.Token;
 import com.marco.shopProject.identity.auth.repository.TokenRepository;
 import com.marco.shopProject.security.RateLimiter.RateLimiterFilter;
-import com.marco.shopProject.security.jwt.JwtService;
 import com.marco.shopProject.core.tools.enums.RolesEnum;
+import com.marco.shopProject.security.jwt.dto.AccessTokenValidado;
+import com.marco.shopProject.security.jwt.AccessTokenValidator;
 import com.marco.shopProject.security.jwt.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 @AllArgsConstructor
@@ -29,7 +31,7 @@ public class SecurityConfig {
 
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthFilter jwtAuthFilter;
-    private final JwtService jwtService;
+    private final AccessTokenValidator accessTokenValidator;
     private final RateLimiterFilter rateLimiterFilter;
     private final TokenRepository tokenRepository;
 
@@ -76,19 +78,16 @@ public class SecurityConfig {
     }
 
     private void logout(final String token){
-        if(token == null || !token.startsWith("Bearer ")){
-            throw new IllegalArgumentException("Invalid Token");
-        }
-
-        final String jwtToken = token.substring(7);
-
-        final String userId = jwtService.extractId(jwtToken);
-        if(userId == null){
+        Optional<AccessTokenValidado> tokenValidado =
+                accessTokenValidator.validateAccessToken(token);
+        if(tokenValidado.isEmpty()){
             return;
         }
 
         final List<Token> validUserTokens = tokenRepository.
-                findAllExpiredIsFalseOrRevokedIsFalseByUserId(Long.valueOf(userId));
+                findAllExpiredIsFalseOrRevokedIsFalseByUserId(
+                        tokenValidado.get().userId()
+                );
 
         if(!validUserTokens.isEmpty()){
             for(final Token t: validUserTokens){

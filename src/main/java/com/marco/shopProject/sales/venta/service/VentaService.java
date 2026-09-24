@@ -11,6 +11,6 @@ public interface VentaService {
     Page<VentaDTO> obtenerVentas(String estado, Pageable pageable);
     Page<VentaDTO> obtenerVentasPorSucursalYFecha(Long sucursalId, LocalDateTime fecha,  Pageable pageable);
     VentaDTO obtenerVentaPorId(Long id);
-    VentaDTO crearVenta(Long id, CrearVentaDTO venta);
+    VentaDTO crearVenta(CrearVentaDTO venta);
     VentaDTO eliminarVenta(Long id);
 }

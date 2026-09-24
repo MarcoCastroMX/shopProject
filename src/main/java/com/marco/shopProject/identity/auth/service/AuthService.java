@@ -1,20 +1,25 @@
 package com.marco.shopProject.identity.auth.service;
 
 import com.marco.shopProject.identity.auth.dto.LoginRequestDTO;
+import com.marco.shopProject.identity.auth.dto.RefreshTokenValidado;
 import com.marco.shopProject.identity.auth.dto.RegisterRequestDTO;
 import com.marco.shopProject.identity.auth.dto.TokenResponseDTO;
 import com.marco.shopProject.identity.auth.entity.Token;
 import com.marco.shopProject.identity.auth.repository.TokenRepository;
 import com.marco.shopProject.core.tools.enums.EstadoEnum;
 import com.marco.shopProject.core.tools.enums.RolesEnum;
+import com.marco.shopProject.identity.auth.validator.RefreshTokenValidator;
 import com.marco.shopProject.identity.rol.entity.Rol;
 import com.marco.shopProject.identity.rol.repository.RolRepository;
 import com.marco.shopProject.security.jwt.JwtService;
 import com.marco.shopProject.identity.user.entity.User;
+import com.marco.shopProject.identity.user.exception.EmailAlreadyTakenException;
+import com.marco.shopProject.identity.user.exception.UsuarioEliminadoException;
 import com.marco.shopProject.identity.user.exception.UserNotFoundException;
 import com.marco.shopProject.identity.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,8 +36,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final RefreshTokenValidator refreshTokenValidator;
 
     public TokenResponseDTO register(RegisterRequestDTO request){
+        if(userRepository.findUserByEmail(request.email()).isPresent()){
+            throw new EmailAlreadyTakenException("El email ya esta registrado");
+        }
+
         var user = User.builder()
                 .nombre(request.name())
                 .email(request.email())
@@ -54,18 +64,27 @@ public class AuthService {
     }
 
     public TokenResponseDTO login(LoginRequestDTO request) {
-        authenticationManager.authenticate(
-                            new UsernamePasswordAuthenticationToken(
-                                    request.email(),
-                                    request.password()
-                            )
-                    );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.email(),
+                            request.password()
+                    )
+            );
+        } catch (DisabledException ex) {
+            throw new UsuarioEliminadoException(
+                    "El usuario se encuentra eliminado y no puede iniciar sesión",
+                    ex
+            );
+        }
 
         var user = userRepository.findUserByEmail(request.email())
                 .orElseThrow(() -> new UserNotFoundException("User No Encontrado"));
 
-        if(user.getEstado() != EstadoEnum.ACTIVO){
-            throw new RuntimeException("Usuario Eliminado");
+        if(user.getEstado() == EstadoEnum.ELIMINADO){
+            throw new UsuarioEliminadoException(
+                    "El usuario se encuentra eliminado y no puede iniciar sesión"
+            );
         }
 
         var jwtToken = jwtService.generateToken(user);
@@ -102,27 +121,10 @@ public class AuthService {
     }
 
     public TokenResponseDTO refreshToken(String authHeader) {
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            throw new IllegalArgumentException("Invalid Bearer Token");
-        }
+        RefreshTokenValidado tokenValidado = refreshTokenValidator.validateRefreshToken(authHeader);
 
-        final String refreshToken = authHeader.substring(7);
-        final String userEmail = jwtService.extractUsername(refreshToken);
+        final String accessToken = jwtService.generateToken(tokenValidado.usuario());
 
-        if(userEmail == null){
-            throw new IllegalArgumentException("Invalid Refresh Token");
-        }
-
-        final User user = userRepository.findUserByEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException(userEmail));
-
-        if(!jwtService.isTokenValid(refreshToken,user.getEmail())){
-            throw new IllegalArgumentException("Invalid Refresh Token");
-        }
-
-        final String accessToken = jwtService.generateToken(user);
-
-        return new TokenResponseDTO(accessToken,refreshToken);
-
+        return new TokenResponseDTO(accessToken,tokenValidado.refreshToken());
     }
 }

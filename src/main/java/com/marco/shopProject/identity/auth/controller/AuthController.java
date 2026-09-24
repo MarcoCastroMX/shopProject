@@ -4,6 +4,7 @@ import com.marco.shopProject.identity.auth.dto.LoginRequestDTO;
 import com.marco.shopProject.identity.auth.dto.RegisterRequestDTO;
 import com.marco.shopProject.identity.auth.dto.TokenResponseDTO;
 import com.marco.shopProject.identity.auth.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,13 @@ public class AuthController {
     private final AuthService service;
 
     @PostMapping("/register")
-    public ResponseEntity<TokenResponseDTO> register(@RequestBody final RegisterRequestDTO request){
+    public ResponseEntity<TokenResponseDTO> register(@Valid @RequestBody final RegisterRequestDTO request){
         final TokenResponseDTO token = service.register(request);
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDTO> authenticate(@RequestBody final LoginRequestDTO request){
+    public ResponseEntity<TokenResponseDTO> authenticate(@Valid @RequestBody final LoginRequestDTO request){
         final TokenResponseDTO token = service.login(request);
         return ResponseEntity.ok(token);
     }
